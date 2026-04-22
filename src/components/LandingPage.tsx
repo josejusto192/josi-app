@@ -1,403 +1,744 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import Link from 'next/link'
 
 export default function LandingPage() {
-  // Scroll reveal
+  const heroRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
+    // Staggered reveal
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(e => {
-        if (e.isIntersecting) { e.target.classList.add('lp-visible'); observer.unobserve(e.target) }
+        if (e.isIntersecting) {
+          e.target.classList.add('lp-in')
+          observer.unobserve(e.target)
+        }
       })
-    }, { threshold: 0.12 })
-    document.querySelectorAll('.lp-reveal').forEach(el => observer.observe(el))
-    return () => observer.disconnect()
+    }, { threshold: 0.08 })
+    document.querySelectorAll('.lp-up').forEach(el => observer.observe(el))
+
+    // Parallax orbs on hero
+    const onMove = (ev: MouseEvent) => {
+      if (!heroRef.current) return
+      const { clientX, clientY, currentTarget } = ev
+      const el = currentTarget as HTMLElement
+      const { width, height } = el.getBoundingClientRect()
+      const x = (clientX / width - 0.5) * 28
+      const y = (clientY / height - 0.5) * 18
+      heroRef.current.querySelectorAll<HTMLElement>('.lp-orb').forEach((orb, i) => {
+        const factor = i % 2 === 0 ? 1 : -1
+        orb.style.transform = `translate(${x * factor * 0.6}px, ${y * factor * 0.4}px)`
+      })
+    }
+    const hero = heroRef.current?.parentElement
+    hero?.addEventListener('mousemove', onMove)
+    return () => { observer.disconnect(); hero?.removeEventListener('mousemove', onMove) }
   }, [])
 
-  const toggleFaq = (el: HTMLButtonElement) => {
-    const item = el.closest('.lp-faq-item') as HTMLElement
+  const toggleFaq = (btn: HTMLButtonElement) => {
+    const item = btn.closest('.faq-item') as HTMLElement
     const isOpen = item.classList.contains('open')
-    document.querySelectorAll('.lp-faq-item').forEach(i => i.classList.remove('open'))
+    document.querySelectorAll('.faq-item').forEach(i => i.classList.remove('open'))
     if (!isOpen) item.classList.add('open')
   }
 
   return (
     <>
-      <style>{`
-        .lp-root *, .lp-root *::before, .lp-root *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        .lp-root {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #F5EDE3; color: #4A2E22; overflow-x: hidden;
-        }
-        .lp-root a { text-decoration: none; }
+      {/* Google Fonts */}
+      <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500;1,600&family=Outfit:wght@300;400;500;600&display=swap"
+        rel="stylesheet"
+      />
 
-        /* HEADER */
-        .lp-header {
+      <style>{`
+        /* ─── RESET & ROOT ─── */
+        .lp *, .lp *::before, .lp *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        .lp {
+          --cream:    #FBF5EC;
+          --deep:     #190D04;
+          --terra:    #C4724A;
+          --terra-l:  #D4845A;
+          --gold:     #C89850;
+          --gold-l:   #E0B870;
+          --brown:    #2A1408;
+          --muted:    #8A6450;
+          --border:   rgba(42,20,8,0.10);
+          --serif:    'Cormorant Garamond', Georgia, serif;
+          --sans:     'Outfit', system-ui, sans-serif;
+          font-family: var(--sans);
+          background: var(--cream);
+          color: var(--brown);
+          overflow-x: hidden;
+        }
+        .lp a { text-decoration: none; color: inherit; }
+
+        /* ─── GRAIN OVERLAY ─── */
+        .lp::after {
+          content: '';
+          position: fixed; inset: 0; z-index: 9999;
+          pointer-events: none;
+          opacity: 0.028;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+          background-size: 180px;
+        }
+
+        /* ─── HEADER ─── */
+        .lp-nav {
           position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-          background: rgba(253,248,243,0.92); backdrop-filter: blur(12px);
-          border-bottom: 1px solid rgba(232,216,204,0.6);
-          padding: 0 24px; height: 64px;
           display: flex; align-items: center; justify-content: space-between;
+          padding: 0 40px; height: 68px;
+          background: rgba(251,245,236,0.82);
+          backdrop-filter: blur(16px) saturate(1.4);
+          border-bottom: 1px solid var(--border);
+          transition: background 0.3s;
         }
         .lp-logo {
-          font-family: Georgia, 'Times New Roman', serif;
-          font-size: 22px; font-weight: 700;
-          background: linear-gradient(135deg,#C9826B,#D4A96A);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+          font-family: var(--serif);
+          font-size: 26px; font-weight: 500; font-style: italic;
+          color: var(--terra); letter-spacing: 0.01em;
         }
-        .lp-nav { display: flex; gap: 28px; align-items: center; }
-        .lp-nav a { font-size: 14px; font-weight: 500; color: #8A6A5A; transition: color .2s; }
-        .lp-nav a:hover { color: #C9826B; }
-        .lp-btn {
-          display: inline-flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg,#C9826B,#D4A96A); color: #FDF8F3;
-          font-size: 14px; font-weight: 600; padding: 10px 22px; border-radius: 100px;
-          border: none; cursor: pointer;
-          box-shadow: 0 4px 16px rgba(201,130,107,0.35);
-          transition: transform .18s, box-shadow .18s;
+        .lp-nav-links { display: flex; gap: 32px; }
+        .lp-nav-links a {
+          font-size: 13px; font-weight: 500; letter-spacing: 0.04em;
+          text-transform: uppercase; color: var(--muted);
+          transition: color .2s;
         }
-        .lp-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,130,107,0.45); }
-        .lp-btn-outline {
-          background: transparent; border: 1.5px solid #C9826B; color: #C9826B; box-shadow: none;
+        .lp-nav-links a:hover { color: var(--terra); }
+        .btn-pill {
+          display: inline-flex; align-items: center; gap: 6px;
+          font-family: var(--sans); font-size: 13px; font-weight: 600;
+          letter-spacing: 0.04em; text-transform: uppercase;
+          padding: 10px 24px; border-radius: 100px; cursor: pointer;
+          border: none; transition: all .2s;
         }
-        .lp-btn-outline:hover { background: rgba(201,130,107,0.06); box-shadow: none; }
-        .lp-btn-lg { font-size: 16px; padding: 15px 36px; }
-        .lp-btn-white { background: #FDF8F3; color: #C9826B; box-shadow: 0 4px 16px rgba(0,0,0,0.12); }
-        @media(max-width:680px){ .lp-nav { display: none; } }
+        .btn-dark {
+          background: var(--deep); color: var(--cream);
+          box-shadow: 0 2px 12px rgba(25,13,4,0.25);
+        }
+        .btn-dark:hover { background: var(--brown); box-shadow: 0 4px 20px rgba(25,13,4,0.35); transform: translateY(-1px); }
+        .btn-terra {
+          background: var(--terra); color: #fff;
+          box-shadow: 0 4px 20px rgba(196,114,74,0.4);
+        }
+        .btn-terra:hover { background: var(--terra-l); box-shadow: 0 8px 28px rgba(196,114,74,0.5); transform: translateY(-2px); }
+        .btn-ghost {
+          background: transparent; color: var(--terra);
+          border: 1.5px solid var(--terra);
+        }
+        .btn-ghost:hover { background: rgba(196,114,74,0.06); }
+        .btn-cream {
+          background: var(--cream); color: var(--deep);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+        }
+        .btn-cream:hover { background: #fff; transform: translateY(-2px); }
+        .btn-lg { font-size: 14px; padding: 14px 32px; }
+        @media(max-width:720px){ .lp-nav-links { display:none; } .lp-nav { padding: 0 20px; } }
 
-        /* HERO */
+        /* ─── HERO ─── */
         .lp-hero {
-          min-height: 100svh; padding: 96px 24px 80px;
+          min-height: 100svh;
+          background: var(--deep);
           display: flex; flex-direction: column; align-items: center; justify-content: center;
-          text-align: center; position: relative; overflow: hidden;
+          text-align: center;
+          padding: 100px 24px 80px;
+          position: relative; overflow: hidden;
         }
-        .lp-hero::before {
-          content: ''; position: absolute; inset: 0;
+        .lp-hero-bg {
+          position: absolute; inset: 0;
           background:
-            radial-gradient(ellipse 70% 60% at 50% 0%, rgba(201,130,107,0.18) 0%, transparent 70%),
-            radial-gradient(ellipse 50% 40% at 80% 80%, rgba(212,169,106,0.14) 0%, transparent 60%);
+            radial-gradient(ellipse 80% 60% at 30% 50%, rgba(196,114,74,0.15) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 70% at 70% 30%, rgba(200,152,80,0.10) 0%, transparent 55%),
+            radial-gradient(ellipse 50% 50% at 50% 90%, rgba(196,114,74,0.08) 0%, transparent 50%);
+        }
+        .lp-orb {
+          position: absolute; border-radius: 50%; pointer-events: none;
+          transition: transform 0.8s cubic-bezier(0.25,0.46,0.45,0.94);
+        }
+        .lp-orb-1 { width:500px;height:500px;left:-120px;top:-80px;background:radial-gradient(circle,rgba(196,114,74,0.14),transparent 70%); }
+        .lp-orb-2 { width:400px;height:400px;right:-80px;bottom:10%;background:radial-gradient(circle,rgba(200,152,80,0.12),transparent 70%); }
+        .lp-orb-3 { width:280px;height:280px;left:20%;bottom:-60px;background:radial-gradient(circle,rgba(196,114,74,0.09),transparent 70%); }
+
+        .lp-hero-tag {
+          display: inline-flex; align-items: center; gap: 8px;
+          border: 1px solid rgba(196,114,74,0.4);
+          background: rgba(196,114,74,0.08);
+          color: rgba(200,152,80,0.9);
+          font-size: 11px; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+          padding: 6px 16px; border-radius: 100px; margin-bottom: 36px;
+          animation: fadeUp 0.9s ease both;
+        }
+        .lp-hero-tag span { width:5px;height:5px;border-radius:50%;background:var(--gold-l); }
+
+        .lp-hero h1 {
+          font-family: var(--serif);
+          font-size: clamp(52px, 9vw, 100px);
+          font-weight: 400; line-height: 0.95; letter-spacing: -0.02em;
+          color: #FBF5EC;
+          margin-bottom: 28px;
+          animation: fadeUp 0.9s 0.15s ease both;
+        }
+        .lp-hero h1 em {
+          font-style: italic; font-weight: 300;
+          color: var(--gold-l);
+          display: block;
+        }
+        .lp-hero h1 strong {
+          font-weight: 600; font-style: normal;
+        }
+        .lp-hero-sub {
+          font-size: clamp(15px, 2vw, 18px); font-weight: 300;
+          color: rgba(251,245,236,0.55); max-width: 480px;
+          line-height: 1.7; margin-bottom: 44px;
+          animation: fadeUp 0.9s 0.28s ease both;
+        }
+        .lp-hero-actions {
+          display: flex; gap: 12px; flex-wrap: wrap; justify-content: center;
+          animation: fadeUp 0.9s 0.4s ease both;
+        }
+        .lp-hero-proof {
+          position: absolute; bottom: 36px; left: 50%; transform: translateX(-50%);
+          display: flex; align-items: center; gap: 16px;
+          font-size: 12px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase;
+          color: rgba(251,245,236,0.35);
+          animation: fadeUp 0.9s 0.55s ease both;
+          white-space: nowrap;
+        }
+        .lp-hero-proof::before, .lp-hero-proof::after {
+          content: ''; flex: 1; height: 1px;
+          background: rgba(251,245,236,0.12);
+          width: 60px;
+        }
+        .lp-scroll-hint {
+          position: absolute; bottom: 36px; right: 40px;
+          display: flex; flex-direction: column; align-items: center; gap: 6px;
+          color: rgba(251,245,236,0.25); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+          animation: fadeIn 1.2s 1s ease both;
+        }
+        .lp-scroll-line {
+          width: 1px; height: 48px;
+          background: linear-gradient(to bottom, rgba(251,245,236,0.3), transparent);
+          animation: scrollLine 2s 1.5s ease-in-out infinite;
+        }
+        @keyframes scrollLine {
+          0%,100%{height:48px;opacity:1} 50%{height:28px;opacity:0.4}
+        }
+
+        /* ─── STATS STRIP ─── */
+        .lp-stats {
+          background: var(--terra);
+          padding: 22px 40px;
+          display: flex; justify-content: center; gap: clamp(32px, 6vw, 80px);
+          flex-wrap: wrap;
+        }
+        .lp-stat { text-align: center; }
+        .lp-stat-n {
+          font-family: var(--serif); font-size: clamp(28px, 4vw, 38px);
+          font-weight: 500; color: #fff; line-height: 1;
+        }
+        .lp-stat-l { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.65); margin-top: 4px; }
+
+        /* ─── SECTION ─── */
+        .lp-section { padding: 110px 40px; }
+        .lp-section-inner { max-width: 1160px; margin: 0 auto; }
+        .lp-label {
+          font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase;
+          color: var(--terra); margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+        }
+        .lp-label::before { content:''; width:24px; height:1px; background:var(--terra); }
+        .lp-h2 {
+          font-family: var(--serif);
+          font-size: clamp(36px, 5vw, 60px); font-weight: 400;
+          line-height: 1.05; letter-spacing: -0.02em;
+          color: var(--brown);
+        }
+        .lp-h2 em { font-style: italic; font-weight: 300; color: var(--terra); }
+        .lp-body { font-size: 16px; font-weight: 300; color: var(--muted); line-height: 1.75; }
+
+        /* ─── FEATURES ─── */
+        .feats-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 2px;
+          background: var(--border);
+          border: 1px solid var(--border);
+          border-radius: 24px;
+          overflow: hidden;
+        }
+        @media(max-width:900px){ .feats-grid { grid-template-columns: 1fr 1fr; } }
+        @media(max-width:560px){ .feats-grid { grid-template-columns: 1fr; } }
+        .feat {
+          background: var(--cream);
+          padding: 36px 32px 32px;
+          transition: background 0.25s;
+          position: relative; overflow: hidden;
+        }
+        .feat::before {
+          content: attr(data-n);
+          position: absolute; top: -10px; right: 16px;
+          font-family: var(--serif); font-size: 96px; font-weight: 600;
+          color: rgba(196,114,74,0.05); line-height: 1;
           pointer-events: none;
         }
-        .lp-badge {
-          display: inline-flex; align-items: center; gap: 6px;
-          background: rgba(201,130,107,0.12); border: 1px solid rgba(201,130,107,0.28);
-          color: #C9826B; font-size: 12px; font-weight: 600;
-          padding: 5px 14px; border-radius: 100px; margin-bottom: 24px;
-          letter-spacing: 0.04em; text-transform: uppercase;
+        .feat:hover { background: #fff; }
+        .feat-emoji { font-size: 28px; margin-bottom: 20px; display: block; }
+        .feat-title {
+          font-family: var(--serif); font-size: 22px; font-weight: 500;
+          color: var(--brown); margin-bottom: 10px; line-height: 1.2;
         }
-        .lp-h1 {
-          font-family: Georgia, 'Times New Roman', serif;
-          font-size: clamp(36px, 7vw, 68px); font-weight: 700; line-height: 1.1;
-          color: #4A2E22; max-width: 720px; margin-bottom: 20px;
+        .feat-desc { font-size: 14px; font-weight: 300; color: var(--muted); line-height: 1.65; }
+        .feat-badge {
+          display: inline-block; margin-top: 16px;
+          font-size: 10px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+          padding: 3px 10px; border-radius: 100px;
         }
-        .lp-h1 em {
-          font-style: italic;
-          background: linear-gradient(135deg,#C9826B,#D4A96A);
-          -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        .feat-badge-free { background: rgba(196,114,74,0.1); color: var(--terra); }
+        .feat-badge-prem { background: rgba(200,152,80,0.12); color: #9A7230; }
+
+        /* ─── TESTIMONIALS ─── */
+        .testi-bg { background: var(--deep); }
+        .testi-bg .lp-label { color: rgba(200,152,80,0.7); }
+        .testi-bg .lp-label::before { background: rgba(200,152,80,0.5); }
+        .testi-bg .lp-h2 { color: var(--cream); }
+        .testi-bg .lp-h2 em { color: var(--gold-l); }
+        .testi-grid {
+          display: grid;
+          grid-template-columns: repeat(3,1fr);
+          gap: 20px;
         }
-        .lp-hero p {
-          font-size: clamp(15px, 2.2vw, 18px); color: #8A6A5A;
-          max-width: 520px; line-height: 1.65; margin-bottom: 36px;
+        @media(max-width:900px){ .testi-grid { grid-template-columns: 1fr 1fr; } }
+        @media(max-width:560px){ .testi-grid { grid-template-columns: 1fr; } }
+        .testi-card {
+          border: 1px solid rgba(251,245,236,0.08);
+          border-radius: 20px; padding: 32px 28px;
+          background: rgba(251,245,236,0.03);
+          transition: background 0.25s, border-color 0.25s;
+          position: relative;
         }
-        .lp-hero-ctas { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
-        .lp-social {
-          margin-top: 52px; font-size: 13px; color: #8A6A5A;
-          display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;
+        .testi-card:hover { background: rgba(251,245,236,0.06); border-color: rgba(200,152,80,0.2); }
+        .testi-quote {
+          font-family: var(--serif); font-size: 64px; line-height: 0.8;
+          color: var(--terra); opacity: 0.4; margin-bottom: 16px;
+          display: block;
         }
-        .lp-avatars { display: flex; }
-        .lp-avatars span {
-          width: 32px; height: 32px; border-radius: 50%;
-          border: 2px solid #FDF8F3; margin-left: -8px;
+        .testi-text {
+          font-family: var(--serif); font-size: 17px; font-style: italic;
+          font-weight: 300; line-height: 1.6; color: rgba(251,245,236,0.8);
+          margin-bottom: 24px;
+        }
+        .testi-divider { width: 32px; height: 1px; background: rgba(200,152,80,0.3); margin-bottom: 20px; }
+        .testi-name { font-size: 13px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: rgba(251,245,236,0.6); }
+        .testi-role { font-size: 12px; color: rgba(251,245,236,0.3); margin-top: 3px; }
+        .testi-stars { color: var(--gold-l); font-size: 12px; letter-spacing: 3px; margin-bottom: 18px; }
+
+        /* ─── PRICING ─── */
+        .price-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+          max-width: 820px;
+          margin: 0 auto;
+        }
+        @media(max-width:640px){ .price-grid { grid-template-columns: 1fr; } }
+        .price-card {
+          border-radius: 24px; padding: 40px 36px;
+          border: 1.5px solid var(--border);
+          background: #fff;
+          display: flex; flex-direction: column;
+          transition: box-shadow 0.25s, transform 0.25s;
+        }
+        .price-card:hover { box-shadow: 0 12px 40px rgba(42,20,8,0.1); transform: translateY(-3px); }
+        .price-card-feat {
+          background: var(--deep); border-color: transparent;
+          box-shadow: 0 20px 60px rgba(25,13,4,0.35);
+        }
+        .price-card-feat:hover { box-shadow: 0 28px 70px rgba(25,13,4,0.45); }
+        .price-highlight {
+          font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+          color: var(--gold-l); margin-bottom: 28px;
+          display: flex; align-items: center; gap: 8px;
+        }
+        .price-highlight::after { content:''; flex:1; height:1px; background:rgba(200,152,80,0.2); }
+        .price-name {
+          font-family: var(--serif); font-size: 28px; font-weight: 500;
+          color: var(--brown); margin-bottom: 6px;
+        }
+        .price-card-feat .price-name { color: var(--cream); }
+        .price-amount {
+          font-family: var(--serif); font-size: 56px; font-weight: 400;
+          line-height: 1; margin-bottom: 6px;
+          color: var(--brown);
+        }
+        .price-card-feat .price-amount { color: var(--cream); }
+        .price-amount sup { font-size: 22px; vertical-align: top; margin-top: 14px; }
+        .price-amount .per { font-size: 16px; font-weight: 300; opacity: 0.5; }
+        .price-desc { font-size: 13px; font-weight: 300; color: var(--muted); margin-bottom: 32px; }
+        .price-card-feat .price-desc { color: rgba(251,245,236,0.45); }
+        .price-divider { height: 1px; background: var(--border); margin-bottom: 28px; }
+        .price-card-feat .price-divider { background: rgba(251,245,236,0.08); }
+        .price-list { list-style: none; flex: 1; margin-bottom: 36px; display: flex; flex-direction: column; gap: 14px; }
+        .price-list li {
+          display: flex; align-items: flex-start; gap: 12px;
+          font-size: 14px; font-weight: 300; color: var(--muted); line-height: 1.4;
+        }
+        .price-card-feat .price-list li { color: rgba(251,245,236,0.65); }
+        .price-check {
+          width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; margin-top: 1px;
+          background: rgba(196,114,74,0.12);
           display: flex; align-items: center; justify-content: center;
-          background: linear-gradient(135deg,#C9826B,#D4A96A);
-          color: #FDF8F3; font-size: 13px; font-weight: 700;
         }
-        .lp-avatars span:first-child { margin-left: 0; }
-        .lp-deco {
-          position: absolute; border-radius: 50%; pointer-events: none; opacity: 0.35;
-          animation: lpFloat 8s ease-in-out infinite;
+        .price-check svg { width: 9px; height: 9px; }
+        .price-card-feat .price-check { background: rgba(200,152,80,0.2); }
+
+        /* ─── FAQ ─── */
+        .faq-wrap { max-width: 720px; margin: 0 auto; }
+        .faq-item { border-bottom: 1px solid var(--border); }
+        .faq-item:first-child { border-top: 1px solid var(--border); }
+        .faq-btn {
+          width: 100%; background: none; border: none; cursor: pointer; text-align: left;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 22px 4px; gap: 16px;
         }
-        .lp-d1 { width:300px;height:300px;background:radial-gradient(circle,rgba(201,130,107,0.25),transparent 70%);top:10%;left:-6%; }
-        .lp-d2 { width:200px;height:200px;background:radial-gradient(circle,rgba(212,169,106,0.22),transparent 70%);top:20%;right:-4%;animation-delay:3s; }
-        .lp-d3 { width:150px;height:150px;background:radial-gradient(circle,rgba(201,130,107,0.18),transparent 70%);bottom:15%;left:10%;animation-delay:5s; }
-        @keyframes lpFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
-
-        /* SECTIONS */
-        .lp-section { padding: 96px 24px; }
-        .lp-section-inner { max-width: 1100px; margin: 0 auto; }
-        .lp-section-bg { background: #FDF8F3; }
-        .lp-label { font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#C9826B;margin-bottom:12px; }
-        .lp-h2 {
-          font-family: Georgia,'Times New Roman',serif;
-          font-size:clamp(28px,4vw,42px);font-weight:700;color:#4A2E22;line-height:1.2;margin-bottom:14px;
+        .faq-q { font-family: var(--serif); font-size: 19px; font-weight: 400; color: var(--brown); line-height: 1.3; }
+        .faq-icon {
+          width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+          border: 1.5px solid var(--border); color: var(--terra);
+          display: flex; align-items: center; justify-content: center; font-size: 18px;
+          transition: transform 0.3s, background 0.2s, border-color 0.2s;
         }
-        .lp-sub { font-size:16px;color:#8A6A5A;line-height:1.6;max-width:560px; }
-        .lp-sec-hdr { margin-bottom:56px; }
-        .lp-center { text-align:center; }
-        .lp-mx { margin-left:auto;margin-right:auto; }
-
-        /* FEATURES GRID */
-        .lp-feat-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px; }
-        .lp-feat {
-          background:#F5EDE3; border:1px solid #E8D8CC; border-radius:24px; padding:28px 26px;
-          transition:transform .22s,box-shadow .22s;
+        .faq-item.open .faq-icon { transform: rotate(45deg); background: var(--terra); border-color: var(--terra); color: #fff; }
+        .faq-a {
+          max-height: 0; overflow: hidden; transition: max-height .38s ease, padding .25s;
+          padding: 0 4px; font-size: 15px; font-weight: 300; color: var(--muted); line-height: 1.75;
         }
-        .lp-feat:hover { transform:translateY(-4px);box-shadow:0 12px 32px rgba(74,46,34,.1); }
-        .lp-feat-icon { width:52px;height:52px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:18px; }
-        .lp-feat h3 { font-family:Georgia,'Times New Roman',serif;font-size:19px;font-weight:600;color:#4A2E22;margin-bottom:8px; }
-        .lp-feat p { font-size:14px;color:#8A6A5A;line-height:1.6; }
-        .lp-tag { display:inline-block;margin-top:14px;background:rgba(201,130,107,.12);color:#C9826B;font-size:11px;font-weight:600;padding:3px 10px;border-radius:100px;text-transform:uppercase;letter-spacing:.04em; }
-        .lp-tag-p { background:rgba(212,169,106,.15);color:#A07830; }
+        .faq-item.open .faq-a { max-height: 240px; padding-bottom: 22px; }
 
-        /* TESTIMONIALS */
-        .lp-testi-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px; }
-        .lp-testi { background:#FDF8F3;border:1px solid #E8D8CC;border-radius:24px;padding:28px 26px;position:relative; }
-        .lp-testi::before {
-          content:'\u201C'; position:absolute;top:16px;right:24px;
-          font-family:Georgia,serif;font-size:72px;line-height:1;
-          color:rgba(201,130,107,.15);pointer-events:none;
+        /* ─── FINAL CTA ─── */
+        .lp-cta-wrap {
+          background: var(--deep);
+          padding: 120px 40px;
+          text-align: center; position: relative; overflow: hidden;
         }
-        .lp-stars { color:#D4A96A;font-size:14px;margin-bottom:14px;letter-spacing:2px; }
-        .lp-testi p { font-size:15px;color:#4A2E22;line-height:1.65;font-style:italic;margin-bottom:20px; }
-        .lp-testi-author { display:flex;align-items:center;gap:12px; }
-        .lp-testi-av { width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#C9826B,#D4A96A);display:flex;align-items:center;justify-content:center;font-family:Georgia,serif;font-size:16px;font-weight:700;color:#FDF8F3;flex-shrink:0; }
-        .lp-testi-name { font-size:14px;font-weight:600;color:#4A2E22; }
-        .lp-testi-meta { font-size:12px;color:#8A6A5A; }
-
-        /* PRICING */
-        .lp-price-grid { display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;max-width:760px;margin:0 auto; }
-        .lp-price { border-radius:28px;padding:36px 30px;border:1.5px solid #E8D8CC;background:#F5EDE3;display:flex;flex-direction:column;transition:transform .22s; }
-        .lp-price:hover { transform:translateY(-4px); }
-        .lp-price-feat { background:linear-gradient(135deg,#C9826B,#D4A96A);border-color:transparent;box-shadow:0 20px 48px rgba(201,130,107,.38); }
-        .lp-price-feat * { color:#FDF8F3 !important; }
-        .lp-price-badge { display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(253,248,243,.22);color:#FDF8F3;padding:4px 12px;border-radius:100px;margin-bottom:20px;width:fit-content; }
-        .lp-price-name { font-family:Georgia,serif;font-size:22px;font-weight:700;color:#4A2E22;margin-bottom:8px; }
-        .lp-price-val { font-size:42px;font-weight:700;color:#4A2E22;line-height:1;margin-bottom:4px; }
-        .lp-price-val sup { font-size:20px;vertical-align:top;margin-top:8px; }
-        .lp-price-val .per { font-size:16px;font-weight:400;opacity:.65; }
-        .lp-price-desc { font-size:13px;color:#8A6A5A;margin-bottom:28px; }
-        .lp-price-list { list-style:none;flex:1;margin-bottom:32px;display:flex;flex-direction:column;gap:12px; }
-        .lp-price-list li { font-size:14px;color:#8A6A5A;display:flex;align-items:flex-start;gap:10px; }
-        .lp-chk {
-          width:18px;height:18px;border-radius:50%;flex-shrink:0;margin-top:1px;
-          background:rgba(201,130,107,.15)
-          url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5l2.5 2.5L8 3' stroke='%23C9826B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")
-          no-repeat center;
+        .lp-cta-wrap::before {
+          content: '';
+          position: absolute; inset: 0;
+          background: radial-gradient(ellipse 70% 70% at 50% 50%, rgba(196,114,74,0.12), transparent 60%);
         }
-        .lp-price-feat .lp-chk {
-          background-color:rgba(253,248,243,.25);
-          background-image:url("data:image/svg+xml,%3Csvg width='10' height='10' viewBox='0 0 10 10' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2 5l2.5 2.5L8 3' stroke='%23FDF8F3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+        .lp-cta-wrap .lp-label { justify-content: center; color: rgba(200,152,80,0.6); }
+        .lp-cta-wrap .lp-label::before { background: rgba(200,152,80,0.4); }
+        .lp-cta-h {
+          font-family: var(--serif);
+          font-size: clamp(44px, 7vw, 80px);
+          font-weight: 400; font-style: italic;
+          color: var(--cream); line-height: 1.0;
+          margin-bottom: 24px; letter-spacing: -0.02em;
         }
-        .lp-price-feat .lp-price-list li { color:rgba(253,248,243,.88); }
+        .lp-cta-h strong { font-style: normal; font-weight: 600; display: block; color: var(--gold-l); }
+        .lp-cta-sub { font-size: 16px; font-weight: 300; color: rgba(251,245,236,0.5); margin-bottom: 44px; max-width: 460px; margin-left: auto; margin-right: auto; line-height: 1.65; }
 
-        /* FAQ */
-        .lp-faq-list { max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:12px; }
-        .lp-faq-item { background:#FDF8F3;border:1px solid #E8D8CC;border-radius:18px;overflow:hidden; }
-        .lp-faq-q { width:100%;display:flex;align-items:center;justify-content:space-between;padding:20px 22px;gap:12px;background:none;border:none;cursor:pointer;text-align:left; }
-        .lp-faq-q span { font-size:15px;font-weight:600;color:#4A2E22;line-height:1.4;flex:1; }
-        .lp-faq-icon { width:28px;height:28px;border-radius:50%;flex-shrink:0;background:rgba(201,130,107,.12);color:#C9826B;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1;transition:transform .25s; }
-        .lp-faq-item.open .lp-faq-icon { transform:rotate(45deg); }
-        .lp-faq-a { max-height:0;overflow:hidden;transition:max-height .35s ease,padding .25s;padding:0 22px;font-size:14px;color:#8A6A5A;line-height:1.7; }
-        .lp-faq-item.open .lp-faq-a { max-height:300px;padding-bottom:20px; }
+        /* ─── FOOTER ─── */
+        .lp-footer {
+          background: var(--deep); border-top: 1px solid rgba(251,245,236,0.06);
+          padding: 32px 40px;
+          display: flex; align-items: center; justify-content: space-between;
+          flex-wrap: wrap; gap: 16px;
+        }
+        .lp-footer-logo { font-family: var(--serif); font-size: 20px; font-style: italic; color: rgba(251,245,236,0.35); }
+        .lp-footer-copy { font-size: 12px; color: rgba(251,245,236,0.2); }
+        .lp-footer-links { display: flex; gap: 20px; }
+        .lp-footer-links a { font-size: 12px; color: rgba(251,245,236,0.2); transition: color .2s; }
+        .lp-footer-links a:hover { color: rgba(251,245,236,0.5); }
 
-        /* FINAL CTA */
-        .lp-cta { background:linear-gradient(135deg,#C9826B,#D4A96A);text-align:center;padding:96px 24px;position:relative;overflow:hidden; }
-        .lp-cta::before { content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(255,255,255,.12),transparent 70%); }
-        .lp-cta .lp-label { color:rgba(253,248,243,.7); }
-        .lp-cta .lp-h2 { color:#FDF8F3; }
-        .lp-cta p { color:rgba(253,248,243,.85);margin:0 auto 36px;max-width:520px; }
-        .lp-cta em { font-style:italic;font-family:Georgia,serif; }
-
-        /* FOOTER */
-        .lp-footer { background:#4A2E22;color:rgba(253,248,243,.55);text-align:center;padding:32px 24px;font-size:13px;line-height:1.7; }
-        .lp-footer a { color:rgba(253,248,243,.55); }
-        .lp-footer a:hover { color:rgba(253,248,243,.9); }
-
-        /* REVEAL */
-        .lp-reveal { opacity:0;transform:translateY(28px);transition:opacity .6s ease,transform .6s ease; }
-        .lp-visible { opacity:1;transform:none; }
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+          from { opacity: 0; transform: translateY(24px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; } to { opacity: 1; }
+        }
+        .lp-up {
+          opacity: 0; transform: translateY(32px);
+          transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+        .lp-up:nth-child(2) { transition-delay: 0.1s; }
+        .lp-up:nth-child(3) { transition-delay: 0.18s; }
+        .lp-up:nth-child(4) { transition-delay: 0.26s; }
+        .lp-up:nth-child(5) { transition-delay: 0.34s; }
+        .lp-up:nth-child(6) { transition-delay: 0.42s; }
+        .lp-in { opacity: 1 !important; transform: none !important; }
 
         @media(max-width:600px){
-          .lp-section { padding:72px 20px; }
-          .lp-hero { padding:88px 20px 64px; }
-          .lp-cta { padding:72px 20px; }
-          .lp-price-grid { grid-template-columns:1fr;max-width:420px; }
+          .lp-section { padding: 80px 20px; }
+          .lp-cta-wrap { padding: 80px 20px; }
+          .lp-footer { padding: 24px 20px; flex-direction: column; align-items: flex-start; gap: 12px; }
+          .lp-stats { padding: 18px 20px; gap: 24px; }
         }
       `}</style>
 
-      <div className="lp-root">
+      <div className="lp">
 
-        {/* HEADER */}
-        <header className="lp-header">
+        {/* ── HEADER ── */}
+        <header className="lp-nav">
           <div className="lp-logo">Josi</div>
-          <nav className="lp-nav">
-            <a href="#funcionalidades">O App</a>
+          <nav className="lp-nav-links">
+            <a href="#features">O App</a>
             <a href="#depoimentos">Depoimentos</a>
             <a href="#planos">Planos</a>
             <a href="#faq">FAQ</a>
           </nav>
-          <Link href="/auth/login" className="lp-btn">Começar agora</Link>
+          <Link href="/auth/login" className="btn-pill btn-dark">Entrar</Link>
         </header>
 
-        {/* HERO */}
+        {/* ── HERO ── */}
         <section className="lp-hero">
-          <div className="lp-deco lp-d1" />
-          <div className="lp-deco lp-d2" />
-          <div className="lp-deco lp-d3" />
-          <div className="lp-badge">✦ Exclusivo para seguidoras</div>
-          <h1 className="lp-h1">Sua saúde,<br/><em>do seu jeito</em></h1>
-          <p>O app da Josi reúne treino, nutrição, comunidade e educação em um só lugar — para você transformar sua rotina de forma leve e consistente.</p>
-          <div className="lp-hero-ctas">
-            <Link href="/auth/login" className="lp-btn lp-btn-lg">Quero meu acesso ✦</Link>
-            <a href="#funcionalidades" className="lp-btn lp-btn-lg lp-btn-outline">Ver o app</a>
+          <div className="lp-hero-bg" />
+          <div ref={heroRef}>
+            <div className="lp-orb lp-orb-1" />
+            <div className="lp-orb lp-orb-2" />
+            <div className="lp-orb lp-orb-3" />
           </div>
-          <div className="lp-social">
-            <div className="lp-avatars">
-              <span>A</span><span>C</span><span>M</span><span>L</span><span>R</span>
-            </div>
-            <span>+1.200 mulheres já começaram a jornada</span>
+
+          <div className="lp-hero-tag">
+            <span /> Exclusivo para seguidoras <span />
+          </div>
+
+          <h1 className="lp-hero h1" style={{ fontFamily: 'var(--serif)', fontSize: 'clamp(52px, 9vw, 100px)', fontWeight: 400, lineHeight: 0.95, letterSpacing: '-0.02em', color: '#FBF5EC', marginBottom: 28, animation: 'fadeUp 0.9s 0.15s ease both' }}>
+            <em style={{ fontStyle:'italic', fontWeight:300, color:'var(--gold-l)', display:'block' }}>Sua melhor</em>
+            <strong style={{ fontWeight:600 }}>versão</strong>
+            <em style={{ fontStyle:'italic', fontWeight:300, color:'var(--gold-l)', display:'block' }}>começa aqui</em>
+          </h1>
+
+          <p className="lp-hero-sub">
+            O app da Josi reúne treino, nutrição, comunidade e educação em um só lugar — para você transformar sua rotina de forma leve e consistente.
+          </p>
+
+          <div className="lp-hero-actions">
+            <Link href="/auth/login" className="btn-pill btn-terra btn-lg">
+              Quero meu acesso ✦
+            </Link>
+            <a href="#features" className="btn-pill btn-ghost btn-lg">
+              Conhecer o app
+            </a>
+          </div>
+
+          <div className="lp-hero-proof">
+            +1.200 mulheres na jornada
+          </div>
+
+          <div className="lp-scroll-hint">
+            <div className="lp-scroll-line" />
+            <span>scroll</span>
           </div>
         </section>
 
-        {/* FEATURES */}
-        <section className="lp-section lp-section-bg" id="funcionalidades">
-          <div className="lp-section-inner">
-            <div className="lp-sec-hdr lp-reveal">
-              <div className="lp-label">O que você encontra</div>
-              <h2 className="lp-h2">Tudo que você precisa,<br/>em um só app</h2>
-              <p className="lp-sub">Da aula de hoje ao desafio mensal — a Josi curou um ecossistema completo de saúde e bem-estar feminino.</p>
+        {/* ── STATS ── */}
+        <div className="lp-stats">
+          {[
+            { n: '1.200+', l: 'Membros ativos' },
+            { n: '47',     l: 'Aulas disponíveis' },
+            { n: '6',      l: 'Módulos de conteúdo' },
+            { n: '4.9★',  l: 'Avaliação média' },
+          ].map(s => (
+            <div key={s.l} className="lp-stat">
+              <div className="lp-stat-n">{s.n}</div>
+              <div className="lp-stat-l">{s.l}</div>
             </div>
-            <div className="lp-feat-grid">
+          ))}
+        </div>
+
+        {/* ── FEATURES ── */}
+        <section className="lp-section" id="features">
+          <div className="lp-section-inner">
+            <div style={{ marginBottom: 56, maxWidth: 560 }}>
+              <div className="lp-label lp-up">Funcionalidades</div>
+              <h2 className="lp-h2 lp-up">
+                Tudo que você precisa,<br/>
+                <em>em um só lugar</em>
+              </h2>
+              <p className="lp-body lp-up" style={{ marginTop: 16 }}>
+                Do treino de hoje ao desafio do mês — a Josi curou um ecossistema completo de saúde e bem-estar feminino.
+              </p>
+            </div>
+
+            <div className="feats-grid">
               {[
-                { icon:'💪', bg:'linear-gradient(135deg,#F5D6CA,#F0C4A8)', title:'Exercícios', desc:'Treinos guiados para todos os níveis, com foco em resultados reais e respeito ao seu corpo.', tag:'Incluído', premium:false },
-                { icon:'🥗', bg:'linear-gradient(135deg,#C9E8D8,#A8D8C0)', title:'Nutrição & Receitas', desc:'Receitas saborosas, guias de alimentação e conteúdo educativo sobre nutrição funcional.', tag:'✦ Premium', premium:true },
-                { icon:'🏅', bg:'linear-gradient(135deg,#F5E6C8,#EDD89A)', title:'Desafio Mensal', desc:'Um novo desafio a cada mês para você manter a consistência e celebrar cada conquista.', tag:'✦ Premium', premium:true },
-                { icon:'🧠', bg:'linear-gradient(135deg,#D8C8E8,#C0A8D8)', title:'Educação', desc:'Cursos completos sobre saúde hormonal, mentalidade, beleza e muito mais — com aulas em vídeo e texto.', tag:'✦ Premium', premium:true },
-                { icon:'💬', bg:'linear-gradient(135deg,#C8D8F5,#A8C0E8)', title:'Comunidade', desc:'Um espaço seguro para trocar experiências, tirar dúvidas e se inspirar com outras mulheres.', tag:'Incluído', premium:false },
-                { icon:'🌸', bg:'linear-gradient(135deg,#F5CAD6,#E8A8B8)', title:'Loja Exclusiva', desc:'Produtos curados pela Josi — suplementos, itens de bem-estar e tudo que complementa sua jornada.', tag:'✦ Premium', premium:true },
+                { n:'01', emoji:'💪', title:'Exercícios', desc:'Treinos guiados para todos os níveis, com foco em resultados reais e respeito ao seu corpo.', free:true },
+                { n:'02', emoji:'🥗', title:'Nutrição & Receitas', desc:'Receitas saborosas, guias de alimentação e conteúdo educativo sobre nutrição funcional.', free:false },
+                { n:'03', emoji:'🏅', title:'Desafio Mensal', desc:'Um novo desafio a cada mês para manter a consistência e celebrar cada conquista.', free:false },
+                { n:'04', emoji:'🧠', title:'Educação', desc:'Cursos completos sobre saúde hormonal, mentalidade e beleza — aulas em vídeo e texto.', free:false },
+                { n:'05', emoji:'💬', title:'Comunidade', desc:'Um espaço seguro para trocar experiências, tirar dúvidas e se inspirar com outras mulheres.', free:true },
+                { n:'06', emoji:'🌸', title:'Loja Exclusiva', desc:'Produtos curados pela Josi — suplementos e itens de bem-estar para complementar sua jornada.', free:false },
               ].map(f => (
-                <div key={f.title} className="lp-feat lp-reveal">
-                  <div className="lp-feat-icon" style={{ background: f.bg }}>{f.icon}</div>
-                  <h3>{f.title}</h3>
-                  <p>{f.desc}</p>
-                  <span className={`lp-tag${f.premium ? ' lp-tag-p' : ''}`}>{f.tag}</span>
+                <div key={f.n} className="feat lp-up" data-n={f.n}>
+                  <span className="feat-emoji">{f.emoji}</span>
+                  <div className="feat-title">{f.title}</div>
+                  <p className="feat-desc">{f.desc}</p>
+                  <span className={`feat-badge ${f.free ? 'feat-badge-free' : 'feat-badge-prem'}`}>
+                    {f.free ? 'Incluído' : '✦ Premium'}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* TESTIMONIALS */}
-        <section className="lp-section" id="depoimentos">
+        {/* ── TESTIMONIALS ── */}
+        <section className="lp-section testi-bg" id="depoimentos">
           <div className="lp-section-inner">
-            <div className="lp-sec-hdr lp-reveal lp-center lp-mx">
-              <div className="lp-label">Depoimentos</div>
-              <h2 className="lp-h2">O que as alunas dizem</h2>
-              <p className="lp-sub lp-mx">Transformações reais de mulheres que decidiram colocar a saúde em primeiro lugar.</p>
+            <div style={{ marginBottom: 56, display:'flex', justifyContent:'space-between', alignItems:'flex-end', flexWrap:'wrap', gap:24 }}>
+              <div>
+                <div className="lp-label lp-up">Depoimentos</div>
+                <h2 className="lp-h2 lp-up">
+                  O que as alunas<br/><em>estão dizendo</em>
+                </h2>
+              </div>
+              <Link href="/auth/login" className="btn-pill btn-ghost lp-up" style={{ borderColor:'rgba(196,114,74,0.4)', color:'var(--gold-l)' }}>
+                Ver todas →
+              </Link>
             </div>
-            <div className="lp-testi-grid">
+
+            <div className="testi-grid">
               {[
-                { initial:'A', name:'Ana Paula S.', meta:'Seguiu desde o lançamento', text:'Em 30 dias de desafio já sinto diferença na disposição e no humor. O app é lindo, fácil de usar e os conteúdos da Josi são incríveis. Nunca me senti tão motivada!' },
-                { initial:'C', name:'Carla M.', meta:'Membro premium há 2 meses', text:'Os cursos de nutrição mudaram minha relação com a comida. Nada de dieta restritiva — aprendi a comer bem de verdade. A comunidade é um suporte que eu não sabia que precisava.' },
-                { initial:'M', name:'Mariana L.', meta:'Completou 3 desafios', text:'Finalmente um app que parece ter sido feito pra mim. Os treinos são práticos, as receitas são gostosas de verdade e o desafio mensal me mantém focada. Vale muito cada centavo!' },
-              ].map(t => (
-                <div key={t.name} className="lp-testi lp-reveal">
-                  <div className="lp-stars">★★★★★</div>
-                  <p>{`"${t.text}"`}</p>
-                  <div className="lp-testi-author">
-                    <div className="lp-testi-av">{t.initial}</div>
-                    <div>
-                      <div className="lp-testi-name">{t.name}</div>
-                      <div className="lp-testi-meta">{t.meta}</div>
-                    </div>
-                  </div>
+                { initial:'A', name:'Ana Paula S.', role:'Membro desde o lançamento', text:'Em 30 dias de desafio já sinto diferença na disposição e no humor. O app é lindo, fácil de usar e os conteúdos da Josi são incríveis. Nunca me senti tão motivada!' },
+                { initial:'C', name:'Carla M.', role:'2 meses no Premium', text:'Os cursos de nutrição mudaram minha relação com a comida. Nada de dieta restritiva — aprendi a comer bem de verdade. A comunidade é um suporte que eu não sabia que precisava.' },
+                { initial:'M', name:'Mariana L.', role:'3 desafios concluídos', text:'Finalmente um app que parece ter sido feito pra mim. Os treinos são práticos, as receitas são gostosas de verdade e o desafio mensal me mantém focada. Vale muito cada centavo!' },
+              ].map((t, i) => (
+                <div key={t.name} className={`testi-card lp-up`} style={{ transitionDelay: `${i * 0.1}s` }}>
+                  <div className="testi-stars">★★★★★</div>
+                  <span className="testi-quote">"</span>
+                  <p className="testi-text">{t.text}</p>
+                  <div className="testi-divider" />
+                  <div className="testi-name">{t.name}</div>
+                  <div className="testi-role">{t.role}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* PRICING */}
-        <section className="lp-section lp-section-bg" id="planos">
+        {/* ── PRICING ── */}
+        <section className="lp-section" id="planos">
           <div className="lp-section-inner">
-            <div className="lp-sec-hdr lp-reveal lp-center lp-mx">
-              <div className="lp-label">Planos</div>
-              <h2 className="lp-h2">Escolha o seu plano</h2>
-              <p className="lp-sub lp-mx">Comece gratuitamente e desbloqueie o app completo quando estiver pronta para dar o próximo passo.</p>
+            <div style={{ textAlign:'center', marginBottom: 64 }}>
+              <div className="lp-label lp-up" style={{ justifyContent:'center' }}>Planos</div>
+              <h2 className="lp-h2 lp-up" style={{ textAlign:'center' }}>
+                Escolha <em>como começar</em>
+              </h2>
+              <p className="lp-body lp-up" style={{ maxWidth:480, margin:'16px auto 0' }}>
+                Comece gratuitamente e desbloqueie o app completo quando estiver pronta.
+              </p>
             </div>
-            <div className="lp-price-grid">
-              {/* Free */}
-              <div className="lp-price lp-reveal">
-                <div className="lp-price-name">Gratuito</div>
-                <div className="lp-price-val">R$<sup></sup>0<span className="per">/mês</span></div>
-                <div className="lp-price-desc">Para começar a explorar o app</div>
-                <ul className="lp-price-list">
-                  {['Acesso à comunidade','Treinos básicos','Perfil personalizado','Conteúdo limitado da loja'].map(i=>(
-                    <li key={i}><span className="lp-chk"/>{i}</li>
+
+            <div className="price-grid">
+              {/* FREE */}
+              <div className="price-card lp-up">
+                <div className="price-name">Gratuito</div>
+                <div className="price-amount">R$<sup></sup>0<span className="per">/mês</span></div>
+                <div className="price-desc">Para começar a explorar o app</div>
+                <div className="price-divider" />
+                <ul className="price-list">
+                  {['Comunidade completa','Treinos básicos','Perfil personalizado','Conteúdo limitado da loja'].map(item => (
+                    <li key={item}>
+                      <span className="price-check">
+                        <svg viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2L7.5 2" stroke="#C4724A" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
-                <Link href="/auth/login" className="lp-btn lp-btn-outline" style={{width:'100%',textAlign:'center'}}>Criar conta grátis</Link>
+                <Link href="/auth/login" className="btn-pill btn-ghost" style={{ width:'100%', justifyContent:'center' }}>
+                  Criar conta grátis
+                </Link>
               </div>
-              {/* Premium */}
-              <div className="lp-price lp-price-feat lp-reveal">
-                <div className="lp-price-badge">✦ Mais popular</div>
-                <div className="lp-price-name">Premium</div>
-                <div className="lp-price-val"><sup>R$</sup>47<span className="per">/mês</span></div>
-                <div className="lp-price-desc">Acesso completo a tudo do app</div>
-                <ul className="lp-price-list">
-                  {['Tudo do plano Gratuito','Cursos completos de nutrição, treino e mentalidade','Desafios mensais exclusivos','Receitas e guias alimentares','Suporte prioritário da comunidade','Novos conteúdos toda semana'].map(i=>(
-                    <li key={i}><span className="lp-chk"/>{i}</li>
+
+              {/* PREMIUM */}
+              <div className="price-card price-card-feat lp-up">
+                <div className="price-highlight">✦ Mais popular</div>
+                <div className="price-name">Premium</div>
+                <div className="price-amount" style={{ color:'#FBF5EC' }}><sup style={{ color:'#FBF5EC' }}>R$</sup>47<span className="per">/mês</span></div>
+                <div className="price-desc">Acesso completo a tudo do app</div>
+                <div className="price-divider" />
+                <ul className="price-list">
+                  {[
+                    'Tudo do plano Gratuito',
+                    'Cursos de nutrição, treino e mentalidade',
+                    'Desafios mensais exclusivos',
+                    'Receitas e guias alimentares',
+                    'Suporte prioritário na comunidade',
+                    'Novos conteúdos toda semana',
+                  ].map(item => (
+                    <li key={item}>
+                      <span className="price-check">
+                        <svg viewBox="0 0 9 9" fill="none"><path d="M1.5 4.5l2 2L7.5 2" stroke="#E0B870" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      </span>
+                      {item}
+                    </li>
                   ))}
                 </ul>
-                <Link href="/auth/login" className="lp-btn lp-btn-white" style={{width:'100%',textAlign:'center'}}>Assinar Premium ✦</Link>
+                <Link href="/auth/login" className="btn-pill btn-cream" style={{ width:'100%', justifyContent:'center' }}>
+                  Assinar Premium ✦
+                </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="lp-section" id="faq">
+        {/* ── FAQ ── */}
+        <section className="lp-section" id="faq" style={{ paddingTop: 0 }}>
           <div className="lp-section-inner">
-            <div className="lp-sec-hdr lp-reveal lp-center lp-mx">
-              <div className="lp-label">Dúvidas</div>
-              <h2 className="lp-h2">Perguntas frequentes</h2>
+            <div style={{ textAlign:'center', marginBottom: 56 }}>
+              <div className="lp-label lp-up" style={{ justifyContent:'center' }}>Dúvidas</div>
+              <h2 className="lp-h2 lp-up" style={{ textAlign:'center' }}>Perguntas <em>frequentes</em></h2>
             </div>
-            <div className="lp-faq-list">
+
+            <div className="faq-wrap">
               {[
-                { q:'Posso cancelar a qualquer momento?', a:'Sim! Você pode cancelar sua assinatura quando quiser, sem multas ou burocracia. Após o cancelamento, seu acesso premium permanece até o fim do período já pago.' },
-                { q:'O app funciona no celular?', a:'Sim! O app é 100% responsivo e funciona perfeitamente no navegador do seu celular (Android e iPhone). Não é necessário instalar nada — basta acessar pelo browser.' },
-                { q:'Com que frequência saem conteúdos novos?', a:'Novos conteúdos são adicionados toda semana — entre aulas, receitas e materiais de apoio. Além disso, a cada mês há um desafio novo para manter sua motivação lá em cima.' },
-                { q:'Preciso ter experiência com treino ou dieta?', a:'Não! O app foi pensado para mulheres em todos os estágios — desde quem está começando do zero até quem já tem uma rotina estabelecida. Os conteúdos são organizados por nível.' },
-                { q:'Como funciona a comunidade?', a:'A comunidade é um espaço dentro do próprio app onde você pode publicar textos, fotos e vídeos, curtir e comentar posts de outras mulheres, e trocar experiências em um ambiente acolhedor e seguro.' },
+                { q: 'Posso cancelar a qualquer momento?', a: 'Sim! Você pode cancelar sua assinatura quando quiser, sem multas ou burocracia. Após o cancelamento, seu acesso premium permanece até o fim do período já pago.' },
+                { q: 'O app funciona no celular?', a: 'Sim! O app é 100% responsivo e funciona perfeitamente no navegador do seu celular (Android e iPhone). Não é necessário instalar nada — basta acessar pelo browser.' },
+                { q: 'Com que frequência saem conteúdos novos?', a: 'Novos conteúdos são adicionados toda semana — entre aulas, receitas e materiais de apoio. Além disso, a cada mês há um desafio novo para manter sua motivação lá em cima.' },
+                { q: 'Preciso ter experiência com treino ou dieta?', a: 'Não! O app foi pensado para mulheres em todos os estágios — desde quem está começando do zero até quem já tem uma rotina estabelecida. Os conteúdos são organizados por nível.' },
+                { q: 'Como funciona a comunidade?', a: 'A comunidade é um espaço dentro do próprio app onde você pode publicar textos, fotos e vídeos, curtir e comentar posts de outras mulheres, em um ambiente acolhedor e seguro.' },
               ].map(({ q, a }) => (
-                <div key={q} className="lp-faq-item lp-reveal">
-                  <button className="lp-faq-q" onClick={e => toggleFaq(e.currentTarget)}>
-                    <span>{q}</span>
-                    <div className="lp-faq-icon">+</div>
+                <div key={q} className="faq-item lp-up">
+                  <button className="faq-btn" onClick={e => toggleFaq(e.currentTarget)}>
+                    <span className="faq-q">{q}</span>
+                    <span className="faq-icon">+</span>
                   </button>
-                  <div className="lp-faq-a">{a}</div>
+                  <div className="faq-a">{a}</div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* FINAL CTA */}
-        <section className="lp-cta">
-          <div className="lp-section-inner lp-reveal">
-            <div className="lp-label">Pronta para começar?</div>
-            <h2 className="lp-h2">Sua melhor versão<br/><em>te espera aqui</em></h2>
-            <p>Junte-se a mais de 1.200 mulheres que já deram o primeiro passo. Crie sua conta agora — é de graça.</p>
-            <Link href="/auth/login" className="lp-btn lp-btn-white lp-btn-lg">Quero começar agora ✦</Link>
+        {/* ── FINAL CTA ── */}
+        <section className="lp-cta-wrap">
+          <div style={{ position:'relative', zIndex:1, maxWidth:640, margin:'0 auto' }}>
+            <div className="lp-label lp-up">Pronta para começar?</div>
+            <h2 className="lp-cta-h lp-up">
+              A sua jornada<br/>
+              <strong>começa agora</strong>
+            </h2>
+            <p className="lp-cta-sub lp-up">
+              Junte-se a mais de 1.200 mulheres que já deram o primeiro passo. Crie sua conta — é de graça.
+            </p>
+            <div className="lp-up">
+              <Link href="/auth/login" className="btn-pill btn-terra btn-lg">
+                Quero começar agora ✦
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* FOOTER */}
+        {/* ── FOOTER ── */}
         <footer className="lp-footer">
-          <div className="lp-logo" style={{ marginBottom:12, display:'block' }}>Josi</div>
-          © 2025 Josi App · Todos os direitos reservados ·{' '}
-          <a href="#">Privacidade</a> · <a href="#">Termos</a>
+          <div className="lp-footer-logo">Josi</div>
+          <div className="lp-footer-copy">© 2025 Josi App · Todos os direitos reservados</div>
+          <div className="lp-footer-links">
+            <a href="#">Privacidade</a>
+            <a href="#">Termos</a>
+          </div>
         </footer>
 
       </div>
