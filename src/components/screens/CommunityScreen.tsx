@@ -1,111 +1,690 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { createClient } from '@/lib/supabase/client'
 
-const POSTS = [
-  { id:1, user:'Ana Paula',   avatar:'A', day:7, text:'Gente, que orgulho! Terminei o dia 7 e meu corpo já tá diferente 😭🙏 quem mais tá sentindo?', likes:34, comments:12, time:'há 20min', tag:'Progresso' },
-  { id:2, user:'Camila R.',   avatar:'C', day:5, text:'Fiz minha tarefa do diário hoje e chorei kkk Nunca pensei que me conhecia tão pouco. Obrigada Josi 🌿✨', likes:87, comments:28, time:'há 1h', tag:'Emoção' },
-  { id:3, user:'Fernanda M.', avatar:'F', day:7, text:'Minha foto do antes e depois da semana 1! Já dá pra ver diferença na postura 💪', likes:156, comments:43, time:'há 3h', tag:'Resultado' },
-  { id:4, user:'Josi',        avatar:'J', day:null, text:'Oi meninas! Vocês estão me emocionando com tanto carinho e dedicação 🥺🌸 Continuem firmes, o melhor ainda tá por vir!', likes:312, comments:67, time:'há 5h', tag:'Josi', josi:true },
-]
-
-const TAG_COLORS: Record<string, { bg: string; color: string }> = {
-  Progresso: { bg:'#D6E4CE', color:'#3A5A42' },
-  Emoção:    { bg:'#F9EAF0', color:'#A0526A' },
-  Resultado: { bg:'#F0DEBB', color:'#7A5020' },
-  Josi:      { bg:'linear-gradient(90deg,#C9826B,#D4A96A)', color:'#FDF8F3' },
+// ── Types ─────────────────────────────────────────────────────────────────────
+type Profile = { id: string; nome: string | null; is_admin: boolean }
+type Post = {
+  id: string; user_id: string; conteudo: string; foto_url: string | null
+  video_url: string | null; tipo: string; likes_count: number
+  is_pinned: boolean; is_deleted: boolean; created_at: string
+  author?: Profile; comments_count?: number; i_liked?: boolean
+}
+type Comment = {
+  id: string; post_id: string; user_id: string; conteudo: string
+  parent_id: string | null; likes_count: number; is_deleted: boolean
+  created_at: string; author?: Profile; i_liked?: boolean
+  replies?: Comment[]
 }
 
+// ── Helpers ───────────────────────────────────────────────────────────────────
+const initials = (n: string | null | undefined) =>
+  n ? n.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase() : '?'
+
+const timeAgo = (d: string) => {
+  const diff = Date.now() - new Date(d).getTime()
+  if (diff < 60000)  return 'agora'
+  if (diff < 3600000) return `${Math.floor(diff/60000)}min`
+  if (diff < 86400000) return `${Math.floor(diff/3600000)}h`
+  return `${Math.floor(diff/86400000)}d`
+}
+
+const TIPO_LABELS: Record<string, string> = {
+  resultado: '🏆 Resultado', motivacao: '💪 Motivação',
+  pergunta: '❓ Pergunta', receita: '🥗 Receita', dica: '💡 Dica',
+}
+
+// ── Avatar ────────────────────────────────────────────────────────────────────
+function Avatar({ name, size = 38, josi }: { name?: string | null; size?: number; josi?: boolean }) {
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%', flexShrink: 0,
+      background: josi ? 'linear-gradient(135deg,#C9826B,#D4A96A)' : '#F0D5C8',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: size * 0.38, fontWeight: 600,
+      color: josi ? '#FDF8F3' : '#C9826B', border: josi ? '2px solid #D4A96A' : 'none',
+    }}>
+      {initials(name)}
+    </div>
+  )
+}
+
+// ── Create Post Modal ─────────────────────────────────────────────────────────
+function CreatePostModal({ me, onClose, onCreated }: {
+  me: Profile; onClose: () => void; onCreated: (p: Post) => void
+}) {
+  const supabase = createClient()
+  const [text, setText]       = useState('')
+  const [tipo, setTipo]       = useState('motivacao')
+  const [file, setFile]       = useState<File | null>(null)
+  const [preview, setPreview] = useState<string | null>(null)
+  const [isVideo, setIsVideo] = useState(false)
+  const [posting, setPosting] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+
+  const pickFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]
+    if (!f) return
+    setFile(f); setIsVideo(f.type.startsWith('video'))
+    setPreview(URL.createObjectURL(f))
+  }
+
+  const submit = async () => {
+    if (!text.trim() && !file) return
+    setPosting(true)
+    let foto_url: string | null = null
+    let video_url: string | null = null
+
+    if (file) {
+      const ext  = file.name.split('.').pop()
+      const path = `${me.id}/${Date.now()}.${ext}`
+      const { error } = await supabase.storage.from('community-media').upload(path, file)
+      if (!error) {
+        const { data } = supabase.storage.from('community-media').getPublicUrl(path)
+        if (isVideo) video_url = data.publicUrl
+        else          foto_url = data.publicUrl
+      }
+    }
+
+    const payload = { user_id: me.id, conteudo: text.trim(), tipo, foto_url, video_url }
+    const { data, error } = await supabase.from('community_posts').insert(payload).select('*').single()
+    setPosting(false)
+    if (!error && data) {
+      onCreated({ ...data, author: me, comments_count: 0, i_liked: false })
+      onClose()
+    }
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'flex-end', background:'rgba(74,46,34,0.45)' }}
+         onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ width:'100%', maxWidth:480, margin:'0 auto', background:'#FDF8F3', borderRadius:'24px 24px 0 0', padding:'20px 20px 32px', boxShadow:'0 -8px 40px rgba(74,46,34,0.2)' }}>
+        <div style={{ width:40, height:4, background:'#E8D8CC', borderRadius:100, margin:'0 auto 18px' }} />
+
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+          <Avatar name={me.nome} josi={me.is_admin} />
+          <div>
+            <div style={{ fontSize:14, fontWeight:600, color:'#4A2E22' }}>{me.nome ?? 'Você'}</div>
+            <select value={tipo} onChange={e => setTipo(e.target.value)}
+              style={{ fontSize:11, color:'#8A6A5A', background:'transparent', border:'none', outline:'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
+              {Object.entries(TIPO_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+            </select>
+          </div>
+        </div>
+
+        <textarea
+          value={text} onChange={e => setText(e.target.value)}
+          placeholder="Compartilhe seu progresso, receita, dica ou pergunta... 🌿"
+          autoFocus
+          style={{ width:'100%', minHeight:110, background:'#F5EDE3', border:'none', borderRadius:16, padding:'12px 14px', fontSize:14, color:'#4A2E22', fontFamily:"'DM Sans',sans-serif", resize:'none', outline:'none', boxSizing:'border-box', lineHeight:1.6 }}
+        />
+
+        {preview && (
+          <div style={{ marginTop:10, position:'relative', display:'inline-block' }}>
+            {isVideo
+              ? <video src={preview} style={{ maxWidth:'100%', maxHeight:200, borderRadius:12 }} controls />
+              : <img src={preview} alt="" style={{ maxWidth:'100%', maxHeight:200, borderRadius:12, objectFit:'cover' }} />}
+            <button onClick={() => { setFile(null); setPreview(null) }}
+              style={{ position:'absolute', top:6, right:6, width:26, height:26, borderRadius:'50%', background:'rgba(74,46,34,0.7)', border:'none', color:'#FDF8F3', fontSize:13, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              ×
+            </button>
+          </div>
+        )}
+
+        <input ref={fileRef} type="file" accept="image/*,video/*" onChange={pickFile} style={{ display:'none' }} />
+
+        <div style={{ display:'flex', gap:10, marginTop:14, alignItems:'center' }}>
+          <button onClick={() => fileRef.current?.click()}
+            style={{ width:40, height:40, borderRadius:12, background:'#F5EDE3', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:18 }}>
+            📷
+          </button>
+          <div style={{ flex:1 }} />
+          <button onClick={onClose}
+            style={{ padding:'10px 18px', borderRadius:100, background:'#F0D5C8', border:'none', cursor:'pointer', fontSize:14, fontWeight:600, color:'#A06858', fontFamily:"'DM Sans',sans-serif" }}>
+            Cancelar
+          </button>
+          <button onClick={submit} disabled={posting || (!text.trim() && !file)}
+            style={{ padding:'10px 22px', borderRadius:100, background: posting ? '#D4A96A' : '#C9826B', border:'none', cursor:'pointer', fontSize:14, fontWeight:600, color:'#FDF8F3', fontFamily:"'DM Sans',sans-serif", opacity: (!text.trim() && !file) ? 0.5 : 1, transition:'all 150ms' }}>
+            {posting ? '…' : 'Publicar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Edit Post Modal ───────────────────────────────────────────────────────────
+function EditPostModal({ post, onClose, onUpdated }: {
+  post: Post; onClose: () => void; onUpdated: (p: Post) => void
+}) {
+  const supabase = createClient()
+  const [text, setText]   = useState(post.conteudo)
+  const [tipo, setTipo]   = useState(post.tipo)
+  const [saving, setSaving] = useState(false)
+
+  const save = async () => {
+    if (!text.trim()) return
+    setSaving(true)
+    const { data, error } = await supabase.from('community_posts')
+      .update({ conteudo: text.trim(), tipo }).eq('id', post.id).select('*').single()
+    setSaving(false)
+    if (!error && data) onUpdated({ ...post, conteudo: data.conteudo, tipo: data.tipo })
+  }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:200, display:'flex', alignItems:'flex-end', background:'rgba(74,46,34,0.45)' }}
+         onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ width:'100%', maxWidth:480, margin:'0 auto', background:'#FDF8F3', borderRadius:'24px 24px 0 0', padding:'20px 20px 32px' }}>
+        <div style={{ width:40, height:4, background:'#E8D8CC', borderRadius:100, margin:'0 auto 18px' }} />
+        <div style={{ fontSize:16, fontWeight:600, color:'#4A2E22', marginBottom:14 }}>Editar post</div>
+
+        <select value={tipo} onChange={e => setTipo(e.target.value)}
+          style={{ width:'100%', background:'#F5EDE3', border:'1.5px solid #E8D8CC', borderRadius:12, padding:'9px 12px', fontSize:13, color:'#4A2E22', marginBottom:10, fontFamily:"'DM Sans',sans-serif", outline:'none' }}>
+          {Object.entries(TIPO_LABELS).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+
+        <textarea value={text} onChange={e => setText(e.target.value)} rows={5}
+          style={{ width:'100%', background:'#F5EDE3', border:'1.5px solid #E8D8CC', borderRadius:12, padding:'11px 14px', fontSize:14, color:'#4A2E22', fontFamily:"'DM Sans',sans-serif", resize:'none', outline:'none', boxSizing:'border-box', lineHeight:1.6 }} />
+
+        <div style={{ display:'flex', gap:10, marginTop:14, justifyContent:'flex-end' }}>
+          <button onClick={onClose} style={{ padding:'10px 18px', borderRadius:100, background:'#F0D5C8', border:'none', cursor:'pointer', fontSize:14, fontWeight:600, color:'#A06858', fontFamily:"'DM Sans',sans-serif" }}>
+            Cancelar
+          </button>
+          <button onClick={save} disabled={saving || !text.trim()}
+            style={{ padding:'10px 22px', borderRadius:100, background:'#C9826B', border:'none', cursor:'pointer', fontSize:14, fontWeight:600, color:'#FDF8F3', fontFamily:"'DM Sans',sans-serif" }}>
+            {saving ? '…' : 'Salvar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Comments Panel ─────────────────────────────────────────────────────────────
+function CommentsPanel({ post, me, onClose, onCommentCountChange }: {
+  post: Post; me: Profile; onClose: () => void; onCommentCountChange: (n: number) => void
+}) {
+  const supabase = createClient()
+  const [comments, setComments] = useState<Comment[]>([])
+  const [loading, setLoading]   = useState(true)
+  const [text, setText]         = useState('')
+  const [replyTo, setReplyTo]   = useState<Comment | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editText, setEditText] = useState('')
+  const [sending, setSending]   = useState(false)
+  const bottomRef = useRef<HTMLDivElement>(null)
+
+  const fetchComments = useCallback(async () => {
+    const { data } = await supabase
+      .from('post_comments')
+      .select('*, author:profiles(id,nome,is_admin)')
+      .eq('post_id', post.id)
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: true })
+
+    if (!data) { setLoading(false); return }
+
+    const uid = me.id
+    const likeRes = await supabase.from('comment_likes').select('comment_id').eq('user_id', uid)
+    const likedSet = new Set((likeRes.data ?? []).map((r: { comment_id: string }) => r.comment_id))
+
+    const withLiked = data.map((c: Comment) => ({
+      ...c, i_liked: likedSet.has(c.id),
+      author: Array.isArray(c.author) ? c.author[0] : c.author,
+    }))
+
+    // Build tree
+    const roots: Comment[] = []
+    const map: Record<string, Comment> = {}
+    withLiked.forEach((c: Comment) => { map[c.id] = { ...c, replies: [] } })
+    withLiked.forEach((c: Comment) => {
+      if (c.parent_id && map[c.parent_id]) map[c.parent_id].replies!.push(map[c.id])
+      else roots.push(map[c.id])
+    })
+    setComments(roots)
+    setLoading(false)
+  }, [post.id, me.id])
+
+  useEffect(() => { fetchComments() }, [fetchComments])
+
+  const countAll = (cs: Comment[]): number =>
+    cs.reduce((n, c) => n + 1 + countAll(c.replies ?? []), 0)
+
+  const send = async () => {
+    if (!text.trim()) return
+    setSending(true)
+    const payload = { post_id: post.id, user_id: me.id, conteudo: text.trim(), parent_id: replyTo?.id ?? null }
+    await supabase.from('post_comments').insert(payload)
+    setText(''); setReplyTo(null); setSending(false)
+    await fetchComments()
+    const total = countAll(comments) + 1
+    onCommentCountChange(total)
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 100)
+  }
+
+  const likeComment = async (c: Comment) => {
+    const update = (cs: Comment[]): Comment[] => cs.map(x =>
+      x.id === c.id
+        ? { ...x, i_liked: !x.i_liked, likes_count: x.i_liked ? x.likes_count - 1 : x.likes_count + 1 }
+        : { ...x, replies: update(x.replies ?? []) }
+    )
+    setComments(prev => update(prev))
+    if (c.i_liked) await supabase.from('comment_likes').delete().match({ user_id: me.id, comment_id: c.id })
+    else           await supabase.from('comment_likes').insert({ user_id: me.id, comment_id: c.id })
+  }
+
+  const deleteComment = async (id: string) => {
+    if (!confirm('Remover comentário?')) return
+    await supabase.from('post_comments').update({ is_deleted: true }).eq('id', id)
+    const remove = (cs: Comment[]): Comment[] =>
+      cs.filter(c => c.id !== id).map(c => ({ ...c, replies: remove(c.replies ?? []) }))
+    const next = remove(comments)
+    setComments(next)
+    onCommentCountChange(countAll(next))
+  }
+
+  const saveEdit = async (id: string) => {
+    if (!editText.trim()) return
+    await supabase.from('post_comments').update({ conteudo: editText.trim() }).eq('id', id)
+    const update = (cs: Comment[]): Comment[] => cs.map(c =>
+      c.id === id ? { ...c, conteudo: editText.trim() }
+                  : { ...c, replies: update(c.replies ?? []) }
+    )
+    setComments(prev => update(prev))
+    setEditingId(null)
+  }
+
+  const canDelete = (c: Comment) => c.user_id === me.id || me.is_admin
+
+  const renderComment = (c: Comment, isReply = false) => (
+    <div key={c.id} style={{ marginLeft: isReply ? 36 : 0, marginTop: 12 }}>
+      <div style={{ display:'flex', gap:10 }}>
+        <Avatar name={c.author?.nome} size={isReply ? 28 : 34} josi={c.author?.is_admin} />
+        <div style={{ flex:1 }}>
+          <div style={{ background:'#F5EDE3', borderRadius: isReply ? '12px 12px 12px 0' : '0 12px 12px 12px', padding:'10px 12px', display:'inline-block', maxWidth:'100%' }}>
+            <div style={{ fontSize:12, fontWeight:600, color:'#4A2E22', marginBottom:3 }}>
+              {c.author?.nome ?? 'Usuária'}
+              {c.author?.is_admin && <span style={{ fontSize:9, background:'linear-gradient(90deg,#C9826B,#D4A96A)', color:'#FDF8F3', borderRadius:100, padding:'1px 6px', marginLeft:6, fontWeight:700 }}>CRIADORA</span>}
+            </div>
+            {editingId === c.id ? (
+              <div>
+                <textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2}
+                  style={{ width:'100%', background:'#FDF8F3', border:'1px solid #E8D8CC', borderRadius:8, padding:'6px 8px', fontSize:13, color:'#4A2E22', fontFamily:"'DM Sans',sans-serif", resize:'none', outline:'none', boxSizing:'border-box' }} />
+                <div style={{ display:'flex', gap:6, marginTop:4 }}>
+                  <button onClick={() => saveEdit(c.id)} style={{ fontSize:11, padding:'3px 10px', borderRadius:100, background:'#C9826B', border:'none', color:'#FDF8F3', cursor:'pointer' }}>Salvar</button>
+                  <button onClick={() => setEditingId(null)} style={{ fontSize:11, padding:'3px 10px', borderRadius:100, background:'#F0D5C8', border:'none', color:'#A06858', cursor:'pointer' }}>Cancelar</button>
+                </div>
+              </div>
+            ) : (
+              <div style={{ fontSize:13, color:'#4A2E22', lineHeight:1.5 }}>{c.conteudo}</div>
+            )}
+          </div>
+          <div style={{ display:'flex', gap:14, marginTop:5, alignItems:'center' }}>
+            <span style={{ fontSize:10, color:'#B89B8C' }}>{timeAgo(c.created_at)}</span>
+            <button onClick={() => likeComment(c)}
+              style={{ fontSize:11, color: c.i_liked ? '#C9826B' : '#8A6A5A', background:'none', border:'none', cursor:'pointer', fontWeight: c.i_liked ? 600 : 400, display:'flex', alignItems:'center', gap:3, padding:0 }}>
+              {c.i_liked ? '♥' : '♡'} {c.likes_count > 0 ? c.likes_count : ''}
+            </button>
+            {!isReply && (
+              <button onClick={() => { setReplyTo(c); setText('@' + (c.author?.nome?.split(' ')[0] ?? 'você') + ' ') }}
+                style={{ fontSize:11, color:'#8A6A5A', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                Responder
+              </button>
+            )}
+            {c.user_id === me.id && editingId !== c.id && (
+              <button onClick={() => { setEditingId(c.id); setEditText(c.conteudo) }}
+                style={{ fontSize:11, color:'#8A6A5A', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                Editar
+              </button>
+            )}
+            {canDelete(c) && (
+              <button onClick={() => deleteComment(c.id)}
+                style={{ fontSize:11, color:'#B89B8C', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+                Remover
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+      {(c.replies ?? []).map(r => renderComment(r, true))}
+    </div>
+  )
+
+  const inp = { width:'100%', background:'transparent', border:'none', outline:'none', fontSize:14, color:'#4A2E22', fontFamily:"'DM Sans',sans-serif" }
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:150, display:'flex', alignItems:'flex-end', background:'rgba(74,46,34,0.4)' }}
+         onClick={e => e.target === e.currentTarget && onClose()}>
+      <div style={{ width:'100%', maxWidth:480, margin:'0 auto', background:'#FDF8F3', borderRadius:'24px 24px 0 0', maxHeight:'80vh', display:'flex', flexDirection:'column', boxShadow:'0 -8px 40px rgba(74,46,34,0.2)' }}>
+        {/* Header */}
+        <div style={{ padding:'16px 20px 12px', borderBottom:'1px solid #F0E4DC', flexShrink:0 }}>
+          <div style={{ width:40, height:4, background:'#E8D8CC', borderRadius:100, margin:'0 auto 14px' }} />
+          <div style={{ fontSize:16, fontWeight:600, color:'#4A2E22' }}>Comentários</div>
+        </div>
+
+        {/* Comments list */}
+        <div style={{ flex:1, overflowY:'auto', padding:'12px 16px' }}>
+          {loading ? (
+            <div style={{ textAlign:'center', padding:30, color:'#8A6A5A', fontSize:13 }}>Carregando…</div>
+          ) : comments.length === 0 ? (
+            <div style={{ textAlign:'center', padding:30, color:'#B89B8C', fontSize:13 }}>Seja a primeira a comentar 🌿</div>
+          ) : (
+            comments.map(c => renderComment(c))
+          )}
+          <div ref={bottomRef} />
+        </div>
+
+        {/* Input */}
+        <div style={{ padding:'10px 14px 20px', borderTop:'1px solid #F0E4DC', flexShrink:0 }}>
+          {replyTo && (
+            <div style={{ fontSize:11, color:'#8A6A5A', marginBottom:6, display:'flex', alignItems:'center', gap:6 }}>
+              <span>↩ Respondendo {replyTo.author?.nome?.split(' ')[0] ?? 'comentário'}</span>
+              <button onClick={() => { setReplyTo(null); setText('') }} style={{ fontSize:11, color:'#C9826B', background:'none', border:'none', cursor:'pointer', padding:0 }}>✕</button>
+            </div>
+          )}
+          <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+            <Avatar name={me.nome} size={32} josi={me.is_admin} />
+            <div style={{ flex:1, background:'#F5EDE3', borderRadius:100, padding:'9px 14px', display:'flex', alignItems:'center' }}>
+              <input value={text} onChange={e => setText(e.target.value)} placeholder="Adicionar comentário…"
+                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
+                style={inp} />
+            </div>
+            <button onClick={send} disabled={sending || !text.trim()}
+              style={{ width:36, height:36, borderRadius:'50%', background: text.trim() ? '#C9826B' : '#F0D5C8', border:'none', cursor: text.trim() ? 'pointer' : 'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 150ms' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={text.trim() ? '#FDF8F3' : '#C9826B'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Post Card ─────────────────────────────────────────────────────────────────
+function PostCard({ post, me, onLike, onCommentOpen, onDelete, onEdit }: {
+  post: Post; me: Profile
+  onLike: () => void; onCommentOpen: () => void
+  onDelete: () => void; onEdit: () => void
+}) {
+  const [menuOpen, setMenuOpen] = useState(false)
+  const isOwn  = post.user_id === me.id
+  const isAdmin = me.is_admin
+  const showMenu = isOwn || isAdmin
+
+  const TIPO_BG: Record<string, string> = {
+    resultado: '#D6E4CE', motivacao: '#F0D5C8', pergunta: '#D0E4F0',
+    receita: '#F0E8CC', dica: '#E4D6F0',
+  }
+  const TIPO_COL: Record<string, string> = {
+    resultado: '#3A5A42', motivacao: '#7A3A2A', pergunta: '#2A4A6A',
+    receita: '#6A4A1A', dica: '#4A2A6A',
+  }
+
+  return (
+    <div style={{
+      background: '#FDF8F3', borderRadius: 20, padding: 16,
+      boxShadow: post.is_pinned ? '0 4px 20px rgba(212,169,106,0.25)' : '0 2px 8px rgba(74,46,34,0.08)',
+      border: post.is_pinned ? '1.5px solid #D4A96A' : '1.5px solid transparent',
+      position: 'relative',
+    }}>
+      {post.is_pinned && (
+        <div style={{ fontSize:10, fontWeight:700, color:'#7A5020', marginBottom:8 }}>📌 Fixado pela Josi</div>
+      )}
+
+      {/* Header */}
+      <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+        <Avatar name={post.author?.nome} josi={post.author?.is_admin} />
+        <div style={{ flex:1 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+            <span style={{ fontSize:14, fontWeight:600, color:'#4A2E22' }}>{post.author?.nome ?? 'Usuária'}</span>
+            {post.author?.is_admin && (
+              <span style={{ fontSize:9, background:'linear-gradient(90deg,#C9826B,#D4A96A)', color:'#FDF8F3', borderRadius:100, padding:'2px 7px', fontWeight:700 }}>CRIADORA</span>
+            )}
+          </div>
+          <div style={{ fontSize:11, color:'#8A6A5A', marginTop:1 }}>{timeAgo(post.created_at)}</div>
+        </div>
+        <span style={{ fontSize:10, fontWeight:600, padding:'3px 10px', borderRadius:100, background: TIPO_BG[post.tipo] ?? '#F5EDE3', color: TIPO_COL[post.tipo] ?? '#8A6A5A' }}>
+          {TIPO_LABELS[post.tipo] ?? post.tipo}
+        </span>
+        {showMenu && (
+          <div style={{ position:'relative' }}>
+            <button onClick={() => setMenuOpen(m => !m)}
+              style={{ width:28, height:28, borderRadius:'50%', background:'#F5EDE3', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', fontSize:14, color:'#8A6A5A' }}>
+              ···
+            </button>
+            {menuOpen && (
+              <div style={{ position:'absolute', right:0, top:34, background:'#FDF8F3', borderRadius:14, boxShadow:'0 4px 20px rgba(74,46,34,0.18)', zIndex:50, minWidth:130, overflow:'hidden' }}>
+                {isOwn && (
+                  <button onClick={() => { onEdit(); setMenuOpen(false) }}
+                    style={{ width:'100%', padding:'10px 14px', textAlign:'left', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#4A2E22', fontFamily:"'DM Sans',sans-serif" }}>
+                    ✏️ Editar
+                  </button>
+                )}
+                <button onClick={() => { onDelete(); setMenuOpen(false) }}
+                  style={{ width:'100%', padding:'10px 14px', textAlign:'left', border:'none', background:'none', cursor:'pointer', fontSize:13, color:'#A06858', fontFamily:"'DM Sans',sans-serif" }}>
+                  🗑 Excluir
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Content */}
+      <div style={{ fontSize:14, color:'#4A2E22', lineHeight:1.65, marginBottom:10, whiteSpace:'pre-wrap' }}>
+        {post.conteudo}
+      </div>
+
+      {/* Media */}
+      {post.foto_url && (
+        <img src={post.foto_url} alt="" style={{ width:'100%', borderRadius:14, maxHeight:320, objectFit:'cover', marginBottom:10 }} />
+      )}
+      {post.video_url && (
+        <video src={post.video_url} controls style={{ width:'100%', borderRadius:14, maxHeight:320, marginBottom:10 }} />
+      )}
+
+      {/* Actions */}
+      <div style={{ display:'flex', gap:18, paddingTop:10, borderTop:'1px solid #F0E4DC' }}>
+        <button onClick={onLike} style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+          <svg width="17" height="17" viewBox="0 0 24 24"
+            fill={post.i_liked ? '#C9826B' : 'none'}
+            stroke={post.i_liked ? '#C9826B' : '#B89B8C'}
+            strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+          </svg>
+          <span style={{ fontSize:12, color: post.i_liked ? '#C9826B' : '#8A6A5A', fontWeight: post.i_liked ? 600 : 400 }}>
+            {post.likes_count}
+          </span>
+        </button>
+        <button onClick={onCommentOpen} style={{ display:'flex', alignItems:'center', gap:5, background:'none', border:'none', cursor:'pointer', padding:0 }}>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B89B8C" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+          </svg>
+          <span style={{ fontSize:12, color:'#8A6A5A' }}>{post.comments_count ?? 0}</span>
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Main Screen ───────────────────────────────────────────────────────────────
 export default function CommunityScreen() {
-  const [liked, setLiked] = useState<Record<number, boolean>>({})
-  const [tab, setTab]     = useState<'feed'|'ranking'>('feed')
+  const supabase = createClient()
+  const [me, setMe]               = useState<Profile | null>(null)
+  const [posts, setPosts]         = useState<Post[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [showCreate, setShowCreate] = useState(false)
+  const [editingPost, setEditingPost] = useState<Post | null>(null)
+  const [commentPost, setCommentPost] = useState<Post | null>(null)
+
+  // Load current user
+  useEffect(() => {
+    const init = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase.from('profiles').select('id,nome,is_admin').eq('id', user.id).single()
+      if (data) setMe(data as Profile)
+    }
+    init()
+  }, [])
+
+  // Load posts
+  const loadPosts = useCallback(async () => {
+    setLoading(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    const uid = user?.id
+
+    const { data } = await supabase
+      .from('community_posts')
+      .select('*, author:profiles(id,nome,is_admin)')
+      .eq('is_deleted', false)
+      .order('is_pinned', { ascending: false })
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (!data) { setLoading(false); return }
+
+    // Fetch comment counts
+    const ids = data.map((p: Post) => p.id)
+    const { data: commentCounts } = await supabase
+      .from('post_comments')
+      .select('post_id')
+      .in('post_id', ids)
+      .eq('is_deleted', false)
+
+    const countMap: Record<string, number> = {}
+    ;(commentCounts ?? []).forEach((r: { post_id: string }) => {
+      countMap[r.post_id] = (countMap[r.post_id] ?? 0) + 1
+    })
+
+    // Fetch my likes
+    let likedSet = new Set<string>()
+    if (uid) {
+      const { data: likes } = await supabase.from('post_likes').select('post_id').eq('user_id', uid)
+      likedSet = new Set((likes ?? []).map((l: { post_id: string }) => l.post_id))
+    }
+
+    const enriched: Post[] = data.map((p: Post) => ({
+      ...p,
+      author: Array.isArray(p.author) ? p.author[0] : p.author,
+      comments_count: countMap[p.id] ?? 0,
+      i_liked: likedSet.has(p.id),
+    }))
+
+    setPosts(enriched)
+    setLoading(false)
+  }, [])
+
+  useEffect(() => { loadPosts() }, [loadPosts])
+
+  const toggleLike = async (post: Post) => {
+    if (!me) return
+    const optimistic = posts.map(p =>
+      p.id === post.id ? { ...p, i_liked: !p.i_liked, likes_count: p.i_liked ? p.likes_count - 1 : p.likes_count + 1 } : p
+    )
+    setPosts(optimistic)
+    if (post.i_liked) {
+      await supabase.from('post_likes').delete().match({ user_id: me.id, post_id: post.id })
+    } else {
+      await supabase.from('post_likes').insert({ user_id: me.id, post_id: post.id })
+    }
+  }
+
+  const deletePost = async (post: Post) => {
+    if (!confirm('Excluir este post?')) return
+    await supabase.from('community_posts').update({ is_deleted: true }).eq('id', post.id)
+    setPosts(prev => prev.filter(p => p.id !== post.id))
+  }
+
+  const handleCreated = (p: Post) => {
+    setPosts(prev => [p, ...prev])
+  }
+
+  const handleUpdated = (p: Post) => {
+    setPosts(prev => prev.map(x => x.id === p.id ? { ...x, conteudo: p.conteudo, tipo: p.tipo } : x))
+    setEditingPost(null)
+  }
+
+  if (!me) return (
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F5EDE3' }}>
+      <div style={{ color:'#8A6A5A', fontSize:13 }}>Carregando…</div>
+    </div>
+  )
 
   return (
     <div style={{ flex:1, overflowY:'auto', background:'#F5EDE3' }}>
-      <div style={{ background:'#FDF8F3', padding:'16px 20px 0', borderBottom:'1px solid #E8D8CC' }}>
-        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:600, color:'#4A2E22', marginBottom:12 }}>Comunidade</div>
-        <div style={{ display:'flex' }}>
-          {(['feed','ranking'] as const).map(t => (
-            <div key={t} onClick={() => setTab(t)} style={{ flex:1, textAlign:'center', paddingBottom:10, fontSize:13, fontWeight:500, color: tab===t?'#C9826B':'#8A6A5A', borderBottom: tab===t?'2px solid #C9826B':'2px solid transparent', cursor:'pointer', transition:'all 150ms' }}>
-              {t === 'feed' ? 'Feed' : 'Ranking 🏆'}
-            </div>
-          ))}
+      {/* Header */}
+      <div style={{ background:'#FDF8F3', padding:'16px 20px 0', borderBottom:'1px solid #E8D8CC', position:'sticky', top:0, zIndex:10 }}>
+        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:600, color:'#4A2E22', marginBottom:12 }}>
+          Comunidade
         </div>
       </div>
 
-      {tab === 'feed' ? (
-        <>
-          <div style={{ padding:'14px 20px', background:'#FDF8F3', borderBottom:'1px solid #E8D8CC' }}>
-            <div style={{ display:'flex', gap:10, alignItems:'center' }}>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'#F0D5C8', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, fontSize:14, fontWeight:600, color:'#C9826B' }}>Eu</div>
-              <div style={{ flex:1, background:'#F5EDE3', borderRadius:100, padding:'10px 16px', fontSize:13, color:'#B89B8C' }}>Compartilhe seu progresso hoje... 🌿</div>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:'#C9826B', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, boxShadow:'0 4px 10px rgba(201,130,107,0.35)' }}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FDF8F3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-              </div>
-            </div>
+      {/* Compose bar */}
+      <div style={{ padding:'14px 20px', background:'#FDF8F3', borderBottom:'1px solid #E8D8CC' }}>
+        <div style={{ display:'flex', gap:10, alignItems:'center' }}>
+          <Avatar name={me.nome} size={36} josi={me.is_admin} />
+          <div onClick={() => setShowCreate(true)}
+            style={{ flex:1, background:'#F5EDE3', borderRadius:100, padding:'10px 16px', fontSize:13, color:'#B89B8C', cursor:'pointer' }}>
+            Compartilhe seu progresso hoje... 🌿
           </div>
-          <div style={{ padding:'12px 20px', display:'flex', flexDirection:'column', gap:12 }}>
-            {POSTS.map(post => {
-              const tc  = TAG_COLORS[post.tag] || { bg:'#F0D5C8', color:'#C9826B' }
-              const isLiked = liked[post.id]
-              return (
-                <div key={post.id} style={{ background:'#FDF8F3', borderRadius:20, padding:16, boxShadow: post.josi?'0 4px 20px rgba(201,130,107,0.18)':'0 2px 8px rgba(74,46,34,0.08)', border: post.josi?'1.5px solid rgba(201,130,107,0.2)':'none' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-                    <div style={{ width:38, height:38, borderRadius:'50%', background: post.josi?'linear-gradient(135deg,#C9826B,#D4A96A)':'#F0D5C8', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15, fontWeight:600, color: post.josi?'#FDF8F3':'#C9826B', flexShrink:0 }}>
-                      {post.avatar}
-                    </div>
-                    <div style={{ flex:1 }}>
-                      <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                        <span style={{ fontSize:14, fontWeight:600, color:'#4A2E22' }}>{post.user}</span>
-                        {post.josi && <span style={{ fontSize:9, background:'linear-gradient(90deg,#C9826B,#D4A96A)', color:'#FDF8F3', borderRadius:100, padding:'2px 7px', fontWeight:600 }}>CRIADORA</span>}
-                      </div>
-                      <div style={{ fontSize:11, color:'#8A6A5A', marginTop:1 }}>{post.day?`Dia ${post.day} · `:''}{post.time}</div>
-                    </div>
-                    <div style={{ padding:'3px 10px', borderRadius:100, background:tc.bg, color:tc.color, fontSize:10, fontWeight:600 }}>{post.tag}</div>
-                  </div>
-                  <div style={{ fontSize:14, color:'#4A2E22', lineHeight:1.6, marginBottom:12 }}>{post.text}</div>
-                  <div style={{ display:'flex', gap:16, paddingTop:10, borderTop:'1px solid #F0E4DC' }}>
-                    <div onClick={() => setLiked(p => ({...p,[post.id]:!p[post.id]}))} style={{ display:'flex', alignItems:'center', gap:5, cursor:'pointer' }}>
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill={isLiked?'#C9826B':'none'} stroke={isLiked?'#C9826B':'#B89B8C'} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                      </svg>
-                      <span style={{ fontSize:12, color: isLiked?'#C9826B':'#8A6A5A', fontWeight: isLiked?600:400 }}>{post.likes+(isLiked?1:0)}</span>
-                    </div>
-                    <div style={{ display:'flex', alignItems:'center', gap:5 }}>
-                      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#B89B8C" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                      <span style={{ fontSize:12, color:'#8A6A5A' }}>{post.comments}</span>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
+          <div onClick={() => setShowCreate(true)}
+            style={{ width:36, height:36, borderRadius:'50%', background:'#C9826B', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, boxShadow:'0 4px 10px rgba(201,130,107,0.35)' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FDF8F3" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
           </div>
-        </>
-      ) : (
-        <div style={{ padding:'16px 20px', display:'flex', flexDirection:'column', gap:10 }}>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:500, color:'#4A2E22', marginBottom:4 }}>Top participantes 🌿</div>
-          {[
-            { pos:1, user:'Fernanda M.', days:7, streak:7, pts:420 },
-            { pos:2, user:'Ana Paula',   days:7, streak:6, pts:380 },
-            { pos:3, user:'Camila R.',   days:7, streak:5, pts:355 },
-            { pos:4, user:'Bianca S.',   days:6, streak:6, pts:310 },
-            { pos:5, user:'Você',        days:7, streak:7, pts:290, me:true },
-          ].map(r => (
-            <div key={r.pos} style={{ background: r.me?'#F0D5C8':'#FDF8F3', borderRadius:16, padding:'12px 16px', display:'flex', alignItems:'center', gap:12, boxShadow: r.pos<=3?'0 4px 14px rgba(74,46,34,0.10)':'0 2px 8px rgba(74,46,34,0.06)', border: r.me?'1.5px solid #C9826B':'none' }}>
-              <div style={{ width:32, height:32, borderRadius:12, background: r.pos===1?'linear-gradient(135deg,#D4A96A,#E8C878)':r.pos===2?'#C0C8D4':r.pos===3?'#D4B898':'#F0E4DC', display:'flex', alignItems:'center', justifyContent:'center', fontSize: r.pos<=3?16:14, fontWeight:700, color: r.pos<=3?'#FDF8F3':'#8A6A5A', flexShrink:0 }}>
-                {r.pos<=3?['🥇','🥈','🥉'][r.pos-1]:r.pos}
-              </div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight: r.me?600:500, color:'#4A2E22' }}>{r.user}{r.me?' (você)':''}</div>
-                <div style={{ fontSize:11, color:'#8A6A5A', marginTop:1 }}>Dia {r.days} · 🔥{r.streak} seguidos</div>
-              </div>
-              <div style={{ textAlign:'right' }}>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:600, color: r.me?'#C9826B':'#4A2E22' }}>{r.pts}</div>
-                <div style={{ fontSize:9, color:'#8A6A5A' }}>pontos</div>
-              </div>
-            </div>
-          ))}
         </div>
+      </div>
+
+      {/* Feed */}
+      <div style={{ padding:'12px 20px', display:'flex', flexDirection:'column', gap:12 }}>
+        {loading ? (
+          <div style={{ textAlign:'center', padding:40, color:'#8A6A5A', fontSize:13 }}>Carregando…</div>
+        ) : posts.length === 0 ? (
+          <div style={{ textAlign:'center', padding:'48px 20px' }}>
+            <div style={{ fontSize:36, marginBottom:12 }}>🌿</div>
+            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:18, color:'#4A2E22', marginBottom:8 }}>Nenhum post ainda</div>
+            <div style={{ fontSize:13, color:'#8A6A5A', marginBottom:20 }}>Seja a primeira a compartilhar!</div>
+            <button onClick={() => setShowCreate(true)}
+              style={{ background:'#C9826B', borderRadius:100, padding:'10px 24px', color:'#FDF8F3', fontSize:14, fontWeight:600, border:'none', cursor:'pointer', fontFamily:"'DM Sans',sans-serif" }}>
+              + Criar post
+            </button>
+          </div>
+        ) : (
+          posts.map(post => (
+            <PostCard
+              key={post.id}
+              post={post}
+              me={me}
+              onLike={() => toggleLike(post)}
+              onCommentOpen={() => setCommentPost(post)}
+              onDelete={() => deletePost(post)}
+              onEdit={() => setEditingPost(post)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Modals */}
+      {showCreate && (
+        <CreatePostModal me={me} onClose={() => setShowCreate(false)} onCreated={handleCreated} />
+      )}
+      {editingPost && (
+        <EditPostModal post={editingPost} onClose={() => setEditingPost(null)} onUpdated={handleUpdated} />
+      )}
+      {commentPost && (
+        <CommentsPanel
+          post={commentPost}
+          me={me}
+          onClose={() => setCommentPost(null)}
+          onCommentCountChange={n =>
+            setPosts(prev => prev.map(p => p.id === commentPost.id ? { ...p, comments_count: n } : p))
+          }
+        />
       )}
     </div>
   )
