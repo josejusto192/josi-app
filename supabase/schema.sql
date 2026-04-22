@@ -23,6 +23,7 @@ create table if not exists public.profiles (
   sequencia_atual      integer default 0,   -- dias consecutivos
   sequencia_recorde    integer default 0,
   onboarding_completed boolean default false,
+  is_admin             boolean default false,
   created_at           timestamptz default now(),
   updated_at           timestamptz default now()
 );
