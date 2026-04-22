@@ -26,7 +26,7 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Public routes — no auth required
-  const publicRoutes = ['/', '/landing', '/auth/login', '/auth/callback', '/auth/reset-password']
+  const publicRoutes = ['/auth/login', '/auth/callback', '/auth/reset-password']
   if (publicRoutes.includes(pathname)) return supabaseResponse
 
   // Protected routes — redirect to login if not authenticated
