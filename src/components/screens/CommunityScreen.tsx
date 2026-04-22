@@ -218,7 +218,7 @@ function CommentsPanel({ post, me, onClose, onCommentCountChange }: {
   const fetchComments = useCallback(async () => {
     const { data } = await supabase
       .from('post_comments')
-      .select('*, author:profiles(id,nome,is_admin)')
+      .select('*, author:profiles!user_id(id,nome,is_admin)')
       .eq('post_id', post.id)
       .eq('is_deleted', false)
       .order('created_at', { ascending: true })
@@ -539,7 +539,7 @@ export default function CommunityScreen() {
 
     const { data } = await supabase
       .from('community_posts')
-      .select('*, author:profiles(id,nome,is_admin)')
+      .select('*, author:profiles!user_id(id,nome,is_admin)')
       .eq('is_deleted', false)
       .order('is_pinned', { ascending: false })
       .order('created_at', { ascending: false })
