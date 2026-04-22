@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 export default async function AdminUsuariosPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [{ data: profiles }, { data: enrollments }, { data: progressData }] = await Promise.all([
     supabase.from('profiles').select('id,nome,onboarding_completed,created_at,objetivo,peso_inicial').eq('is_admin', false).order('created_at', { ascending: false }),

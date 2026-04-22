@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import Link from 'next/link'
 
 const TIPO_ICON: Record<string, string> = {
@@ -6,7 +6,7 @@ const TIPO_ICON: Record<string, string> = {
 }
 
 export default async function AdminDesafioPage() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   const { data: days } = await supabase.from('challenge_days').select('*').order('day')
 
   // Stats
