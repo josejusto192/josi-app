@@ -1,100 +1,152 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { createClient } from '@/lib/supabase/client'
+import CourseDetail from '@/components/education/CourseDetail'
 
-const COURSES = [
-  { id:1, title:'Alimentação Real no Dia a Dia', tag:'Nutrição',   lessons:8,  duration:'2h14', progress:60,  color:['#C9826B','#D4A96A'], emoji:'🥗', enrolled:true  },
-  { id:2, title:'Mindset de Transformação',      tag:'Mental',     lessons:6,  duration:'1h40', progress:0,   color:['#8A9E7B','#A8BE98'], emoji:'🧠', enrolled:false },
-  { id:3, title:'Skincare Natural com a Josi',   tag:'Beleza',     lessons:5,  duration:'1h15', progress:100, color:['#A0526A','#C87090'], emoji:'🌸', enrolled:true, done:true },
-  { id:4, title:'Receitas Práticas da Chácara',  tag:'Culinária',  lessons:10, duration:'3h20', progress:0,   color:['#D4A96A','#E8C878'], emoji:'🍳', enrolled:false },
-]
+type Lesson = { id: string; titulo: string; tipo: string; duracao_min: number | null; ordem: number; is_premium: boolean; module_id: string }
+type Module = { id: string; titulo: string; ordem: number; lessons?: Lesson[] }
+export type CourseType = {
+  id: string; titulo: string; descricao: string | null; categoria: string
+  is_premium: boolean; ordem: number; thumbnail_url: string | null
+  modules?: Module[]; totalLessons?: number; completedLessons?: number
+}
 
-const ARTICLES = [
-  { title:'Como criar uma rotina matinal sustentável', tag:'Hábitos',   time:'6 min', emoji:'☀️' },
-  { title:'Suplementação para mulheres ativas',        tag:'Saúde',     time:'8 min', emoji:'💊' },
-  { title:'A importância do descanso no processo',     tag:'Bem-estar', time:'5 min', emoji:'🌙' },
-]
+export const CAT_GRADIENT: Record<string, string> = {
+  nutricao:    'linear-gradient(135deg,#C9826B,#D4A96A)',
+  mentalidade: 'linear-gradient(135deg,#8A9E7B,#A8BE98)',
+  receitas:    'linear-gradient(135deg,#D4A96A,#E8C878)',
+  treino:      'linear-gradient(135deg,#6BA3BE,#8ABCD6)',
+  saude:       'linear-gradient(135deg,#A06858,#C9826B)',
+  beleza:      'linear-gradient(135deg,#A0526A,#C87090)',
+}
+export const CAT_EMOJI: Record<string, string> = {
+  nutricao:'🥗', mentalidade:'🧠', receitas:'🍳', treino:'💪', saude:'❤️', beleza:'🌸',
+}
+export const CAT_LABEL: Record<string, string> = {
+  nutricao:'Nutrição', mentalidade:'Mentalidade', receitas:'Receitas',
+  treino:'Treino', saude:'Saúde', beleza:'Beleza',
+}
 
 export default function EducationScreen() {
-  const [tab, setTab] = useState<'cursos'|'artigos'>('cursos')
+  const [courses, setCourses]     = useState<CourseType[]>([])
+  const [loading, setLoading]     = useState(true)
+  const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
+  const [userId, setUserId]       = useState<string | null>(null)
+
+  useEffect(() => {
+    const load = async () => {
+      const supabase = createClient()
+      const { data: { user } } = await supabase.auth.getUser()
+      const uid = user?.id ?? null
+      setUserId(uid)
+
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('*, modules:course_modules(*, lessons:lessons(id,titulo,tipo,duracao_min,ordem,is_premium,module_id))')
+        .eq('is_published', true)
+        .order('ordem')
+
+      if (!coursesData) { setLoading(false); return }
+
+      let completedSet = new Set<string>()
+      if (uid) {
+        const { data: prog } = await supabase.from('lesson_progress').select('lesson_id').eq('user_id', uid)
+        completedSet = new Set((prog ?? []).map((r: { lesson_id: string }) => r.lesson_id))
+      }
+
+      const enriched = coursesData.map((c: CourseType) => {
+        const mods = ((c.modules ?? []) as Module[]).sort((a, b) => a.ordem - b.ordem).map(m => ({
+          ...m,
+          lessons: ((m.lessons ?? []) as Lesson[]).sort((a, b) => a.ordem - b.ordem),
+        }))
+        const allLessons = mods.flatMap(m => m.lessons ?? [])
+        return { ...c, modules: mods, totalLessons: allLessons.length, completedLessons: allLessons.filter(l => completedSet.has(l.id)).length }
+      })
+
+      setCourses(enriched)
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  if (selectedCourse) {
+    return (
+      <CourseDetail
+        course={selectedCourse}
+        userId={userId}
+        onBack={() => setSelectedCourse(null)}
+        onLessonComplete={(lessonId) => {
+          setCourses(prev => prev.map(c => {
+            if (c.id !== selectedCourse.id) return c
+            const completed = (c.completedLessons ?? 0) + 1
+            setSelectedCourse(sc => sc ? { ...sc, completedLessons: completed } : sc)
+            return { ...c, completedLessons: completed }
+          }))
+        }}
+      />
+    )
+  }
 
   return (
-    <div style={{ flex:1, overflowY:'auto', background:'#F5EDE3' }}>
-      <div style={{ background:'#FDF8F3', padding:'16px 20px 0', borderBottom:'1px solid #E8D8CC' }}>
-        <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:600, color:'#4A2E22', marginBottom:12 }}>Educação</div>
-        <div style={{ display:'flex' }}>
-          {(['cursos','artigos'] as const).map(t => (
-            <div key={t} onClick={() => setTab(t)} style={{ flex:1, textAlign:'center', paddingBottom:10, fontSize:13, fontWeight:500, color: tab===t?'#C9826B':'#8A6A5A', borderBottom: tab===t?'2px solid #C9826B':'2px solid transparent', cursor:'pointer', transition:'all 150ms' }}>
-              {t === 'cursos' ? 'Cursos' : 'Artigos'}
-            </div>
-          ))}
-        </div>
+    <div style={{ flex: 1, overflowY: 'auto', background: '#F5EDE3' }}>
+      <div style={{ background: '#FDF8F3', padding: '16px 20px 16px', borderBottom: '1px solid #E8D8CC' }}>
+        <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 22, fontWeight: 600, color: '#4A2E22' }}>Educação</div>
+        <div style={{ fontSize: 13, color: '#8A6A5A', marginTop: 2 }}>Cursos, módulos e aulas exclusivas</div>
       </div>
 
-      {tab === 'cursos' ? (
-        <div style={{ padding:'16px 20px 24px', display:'flex', flexDirection:'column', gap:14 }}>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:500, color:'#4A2E22' }}>Em andamento</div>
-          {COURSES.filter(c => c.enrolled && !c.done).map(course => (
-            <div key={course.id} style={{ background:'#FDF8F3', borderRadius:20, overflow:'hidden', boxShadow:'0 4px 16px rgba(74,46,34,0.10)', cursor:'pointer' }}>
-              <div style={{ background:`linear-gradient(135deg,${course.color[0]},${course.color[1]})`, padding:'18px 18px 20px' }}>
-                <div style={{ fontSize:32, marginBottom:8 }}>{course.emoji}</div>
-                <div style={{ fontSize:9, color:'rgba(253,248,243,0.7)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>{course.tag}</div>
-                <div style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:500, color:'#FDF8F3', lineHeight:1.25 }}>{course.title}</div>
-              </div>
-              <div style={{ padding:'14px 16px' }}>
-                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-                  <span style={{ fontSize:12, color:'#8A6A5A' }}>{course.lessons} aulas · {course.duration}</span>
-                  <span style={{ fontSize:12, fontWeight:600, color:'#C9826B' }}>{course.progress}%</span>
-                </div>
-                <div style={{ height:5, background:'#F0D5C8', borderRadius:3 }}>
-                  <div style={{ width:`${course.progress}%`, height:'100%', background:`linear-gradient(90deg,${course.color[0]},${course.color[1]})`, borderRadius:3 }}/>
-                </div>
-                <button style={{ marginTop:12, width:'100%', background:'#C9826B', color:'#FDF8F3', border:'none', borderRadius:100, padding:11, fontSize:14, fontWeight:500, fontFamily:"'DM Sans',sans-serif", cursor:'pointer' }}>Continuar →</button>
-              </div>
-            </div>
-          ))}
+      <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+        {loading ? (
+          <div style={{ textAlign: 'center', padding: 48, color: '#8A6A5A', fontSize: 13 }}>Carregando cursos…</div>
+        ) : courses.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: 48 }}>
+            <div style={{ fontSize: 36, marginBottom: 12 }}>📚</div>
+            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, color: '#4A2E22' }}>Nenhum curso disponível</div>
+          </div>
+        ) : courses.map(course => {
+          const pct = course.totalLessons ? Math.round(((course.completedLessons ?? 0) / course.totalLessons) * 100) : 0
+          const done = pct === 100
+          const grad = CAT_GRADIENT[course.categoria] ?? CAT_GRADIENT.nutricao
+          const totalMin = (course.modules ?? []).flatMap(m => m.lessons ?? []).reduce((s, l) => s + (l.duracao_min ?? 0), 0)
+          const h = Math.floor(totalMin / 60), m = totalMin % 60
+          const durStr = h > 0 ? `${h}h${m > 0 ? m + 'min' : ''}` : `${m}min`
 
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:500, color:'#4A2E22', marginTop:4 }}>Concluídos ✓</div>
-          {COURSES.filter(c => c.done).map(course => (
-            <div key={course.id} style={{ background:'#FDF8F3', borderRadius:18, padding:'14px 16px', display:'flex', alignItems:'center', gap:12, boxShadow:'0 2px 8px rgba(74,46,34,0.07)', opacity:0.85 }}>
-              <div style={{ width:46, height:46, borderRadius:14, background:`linear-gradient(135deg,${course.color[0]},${course.color[1]})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{course.emoji}</div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:500, color:'#4A2E22' }}>{course.title}</div>
-                <div style={{ fontSize:11, color:'#8A9E7B', marginTop:2, fontWeight:500 }}>✓ Concluído · {course.lessons} aulas</div>
+          return (
+            <div key={course.id} onClick={() => setSelectedCourse(course)}
+              style={{ background: '#FDF8F3', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 16px rgba(74,46,34,0.10)', cursor: 'pointer', border: done ? '2px solid #8A9E7B' : '2px solid transparent' }}>
+              <div style={{ background: grad, padding: '20px 18px 22px', position: 'relative' }}>
+                {course.is_premium && (
+                  <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 10, fontWeight: 700, color: '#FDF8F3' }}>✦ PREMIUM</div>
+                )}
+                {done && (
+                  <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(138,158,123,0.9)', borderRadius: 100, padding: '3px 10px', fontSize: 10, fontWeight: 700, color: '#FDF8F3' }}>✓ Concluído</div>
+                )}
+                <div style={{ fontSize: 34, marginBottom: 8 }}>{CAT_EMOJI[course.categoria]}</div>
+                <div style={{ fontSize: 9, color: 'rgba(253,248,243,0.75)', letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 4 }}>{CAT_LABEL[course.categoria]}</div>
+                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, color: '#FDF8F3', lineHeight: 1.25 }}>{course.titulo}</div>
               </div>
-              <div style={{ background:'#D6E4CE', borderRadius:100, padding:'4px 10px', fontSize:10, fontWeight:600, color:'#3A5A42' }}>100%</div>
-            </div>
-          ))}
-
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:500, color:'#4A2E22', marginTop:4 }}>Explorar</div>
-          {COURSES.filter(c => !c.enrolled).map(course => (
-            <div key={course.id} style={{ background:'#FDF8F3', borderRadius:18, padding:'14px 16px', display:'flex', alignItems:'center', gap:12, boxShadow:'0 2px 8px rgba(74,46,34,0.08)', cursor:'pointer' }}>
-              <div style={{ width:46, height:46, borderRadius:14, background:`linear-gradient(135deg,${course.color[0]},${course.color[1]})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>{course.emoji}</div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:500, color:'#4A2E22', marginBottom:3 }}>{course.title}</div>
-                <div style={{ fontSize:11, color:'#8A6A5A' }}>{course.lessons} aulas · {course.duration}</div>
-              </div>
-              <button style={{ background:'#F0D5C8', color:'#C9826B', border:'none', borderRadius:100, padding:'6px 14px', fontSize:12, fontWeight:600, fontFamily:"'DM Sans',sans-serif", cursor:'pointer', flexShrink:0 }}>Ver</button>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div style={{ padding:'16px 20px 24px', display:'flex', flexDirection:'column', gap:12 }}>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:500, color:'#4A2E22' }}>Leituras recomendadas</div>
-          {ARTICLES.map((a, i) => (
-            <div key={i} style={{ background:'#FDF8F3', borderRadius:18, padding:16, display:'flex', gap:14, alignItems:'flex-start', boxShadow:'0 2px 8px rgba(74,46,34,0.08)', cursor:'pointer' }}>
-              <div style={{ width:48, height:48, borderRadius:14, background:'#F5EDE3', display:'flex', alignItems:'center', justifyContent:'center', fontSize:22, flexShrink:0 }}>{a.emoji}</div>
-              <div style={{ flex:1 }}>
-                <div style={{ fontSize:14, fontWeight:500, color:'#4A2E22', lineHeight:1.35, marginBottom:6 }}>{a.title}</div>
-                <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-                  <span style={{ background:'#F0D5C8', color:'#C9826B', borderRadius:100, padding:'2px 9px', fontSize:10, fontWeight:600 }}>{a.tag}</span>
-                  <span style={{ fontSize:11, color:'#8A6A5A' }}>📖 {a.time} de leitura</span>
+              <div style={{ padding: '14px 16px' }}>
+                {course.descricao && (
+                  <div style={{ fontSize: 12, color: '#8A6A5A', lineHeight: 1.55, marginBottom: 10 }}>
+                    {course.descricao.length > 100 ? course.descricao.slice(0, 100) + '…' : course.descricao}
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: pct > 0 ? 8 : 0 }}>
+                  <span style={{ fontSize: 12, color: '#8A6A5A' }}>{course.totalLessons} aulas · {durStr} · {(course.modules ?? []).length} módulos</span>
+                  {pct > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: done ? '#8A9E7B' : '#C9826B' }}>{pct}%</span>}
                 </div>
+                {pct > 0 ? (
+                  <div style={{ height: 4, background: '#F0D5C8', borderRadius: 3 }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: grad, borderRadius: 3 }} />
+                  </div>
+                ) : (
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#C9826B', marginTop: 4 }}>Começar curso →</div>
+                )}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          )
+        })}
+      </div>
     </div>
   )
 }
