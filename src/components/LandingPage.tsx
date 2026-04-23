@@ -4,15 +4,17 @@ import { useEffect } from 'react'
 import Link from 'next/link'
 import {
   ShoppingBag, Heart, Users, PawPrint, BookOpen, Sparkles,
-  Leaf, ChefHat, Baby, Check, ArrowRight, Star, Sprout,
-  Play, Smile,
+  Leaf, ChefHat, Baby, Check, ArrowRight, Star,
+  Layers, MessageCircle, Repeat2,
 } from 'lucide-react'
 
 export default function LandingPage() {
   useEffect(() => {
     const io = new IntersectionObserver(
-      (entries) => entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) } }),
-      { threshold: 0.08 }
+      (entries) => entries.forEach(e => {
+        if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target) }
+      }),
+      { threshold: 0.06 }
     )
     document.querySelectorAll('.up').forEach(el => io.observe(el))
     return () => io.disconnect()
@@ -25,222 +27,404 @@ export default function LandingPage() {
     if (!open) item.classList.add('open')
   }
 
-  const Logo = () => (
-    <svg viewBox="0 0 200 44" width="130" height="40" xmlns="http://www.w3.org/2000/svg">
+  const Logo = ({ light }: { light?: boolean }) => (
+    <svg viewBox="0 0 200 44" width="126" height="38" xmlns="http://www.w3.org/2000/svg">
       <defs>
-        <linearGradient id="lgg" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#C9826B"/>
-          <stop offset="100%" stopColor="#D4A96A"/>
+        <linearGradient id={light ? 'lgg-l' : 'lgg-d'} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={light ? '#E8A890' : '#C9826B'}/>
+          <stop offset="100%" stopColor={light ? '#E4C08A' : '#D4A96A'}/>
         </linearGradient>
       </defs>
-      <text x="0" y="38" fontFamily="'Cormorant Garamond',Georgia,serif" fontSize="46" fontWeight="500" fontStyle="italic" fill="url(#lgg)">J</text>
-      <text x="28" y="36" fontFamily="'Cormorant Garamond',Georgia,serif" fontSize="38" fontWeight="400" fontStyle="italic" fill="#4A2E22">osi</text>
-      <circle cx="98" cy="32" r="2.5" fill="#D4A96A"/>
-      <text x="106" y="36" fontFamily="'DM Sans',system-ui,sans-serif" fontSize="10" fontWeight="400" letterSpacing="2" fill="#8A6A5A">VIDA &amp; CONTEÚDO</text>
+      <text x="0" y="38" fontFamily="'Cormorant Garamond',Georgia,serif" fontSize="46" fontWeight="500" fontStyle="italic" fill={`url(#${light ? 'lgg-l' : 'lgg-d'})`}>J</text>
+      <text x="28" y="36" fontFamily="'Cormorant Garamond',Georgia,serif" fontSize="38" fontWeight="400" fontStyle="italic" fill={light ? '#FDF8F3' : '#4A2E22'}>osi</text>
+      <circle cx="98" cy="32" r="2.5" fill={light ? 'rgba(253,248,243,.45)' : '#D4A96A'}/>
+      <text x="106" y="36" fontFamily="'DM Sans',system-ui,sans-serif" fontSize="10" fontWeight="400" letterSpacing="2" fill={light ? 'rgba(253,248,243,.4)' : '#8A6A5A'}>VIDA &amp; CONTEÚDO</text>
     </svg>
   )
 
   const cats = [
-    { Icon: ShoppingBag, name:'Comprinhas',  color:'#F0D5C8', border:'#E0BBA8', iconColor:'#C9826B', desc:'Hauls Shopee, Shein e tudo que eu amei' },
-    { Icon: Heart,       name:'Casal',        color:'#FDE8D8', border:'#F0CDB8', iconColor:'#C9826B', desc:'Momentos com o Jeck e nossa vida a dois' },
-    { Icon: Users,       name:'Família',      color:'#E8F0E0', border:'#C8DDB8', iconColor:'#8A9E7B', desc:'Vida com a Isabeli e tudo sobre maternidade' },
-    { Icon: PawPrint,    name:'Pets',         color:'#F5F0E0', border:'#E0D8B8', iconColor:'#B08A50', desc:'Nossos animais e a vida no campo' },
-    { Icon: BookOpen,    name:'Cursos',       color:'#F0E8D8', border:'#DCCAB0', iconColor:'#C9826B', desc:'Conteúdo exclusivo para você crescer' },
-    { Icon: Sparkles,    name:'Skincare',     color:'#F8E8F0', border:'#E8C8DC', iconColor:'#B07090', desc:'Rotina de pele — simples e que funciona' },
-    { Icon: Leaf,        name:'Chácara',      color:'#E0EDD8', border:'#BCDAB0', iconColor:'#8A9E7B', desc:'Vida no campo, natureza e liberdade' },
-    { Icon: ChefHat,     name:'Receitas',     color:'#FDE8D0', border:'#F0CCAC', iconColor:'#C9826B', desc:'Tudo que saiu da minha cozinha hoje' },
-    { Icon: Baby,        name:'Maternidade',  color:'#F8EAE8', border:'#E8C8C4', iconColor:'#C96B6B', desc:'O que ninguém te conta sobre ser mãe' },
+    { Icon: ShoppingBag, name: 'Comprinhas',  iconColor: '#C9826B', iconBg: 'rgba(201,130,107,.1)', desc: 'Hauls da Shopee e Shein — tudo que eu amei de verdade' },
+    { Icon: Heart,        name: 'Casal',        iconColor: '#C9826B', iconBg: 'rgba(201,130,107,.1)', desc: 'A vida com o Jeck, os perrengues e os momentos mais lindos' },
+    { Icon: Users,        name: 'Família',      iconColor: '#8A9E7B', iconBg: 'rgba(138,158,123,.1)', desc: 'A Isabeli e tudo que ser mãe ensina' },
+    { Icon: PawPrint,     name: 'Pets',         iconColor: '#B08A50', iconBg: 'rgba(212,169,106,.1)', desc: 'Nossos bichinhos e as aventuras no campo' },
+    { Icon: BookOpen,     name: 'Cursos',       iconColor: '#C9826B', iconBg: 'rgba(201,130,107,.1)', desc: 'Aprenda com a Josi — passo a passo, sem enrolação' },
+    { Icon: Sparkles,     name: 'Skincare',     iconColor: '#9E7090', iconBg: 'rgba(158,112,144,.1)', desc: 'Rotina de pele simples que funciona — eu uso, juro' },
+    { Icon: Leaf,         name: 'Chácara',      iconColor: '#8A9E7B', iconBg: 'rgba(138,158,123,.1)', desc: 'Vida no campo, natureza e a liberdade que eu escolhi' },
+    { Icon: ChefHat,      name: 'Receitas',     iconColor: '#C9826B', iconBg: 'rgba(201,130,107,.1)', desc: 'Da minha cozinha pra sua mesa — testadas e aprovadas' },
+    { Icon: Baby,         name: 'Maternidade',  iconColor: '#C96B6B', iconBg: 'rgba(201,107,107,.1)', desc: 'O que ninguém te conta sobre ser mãe — real e sem filtro' },
+  ]
+
+  const phoneCats = [
+    { Icon: ShoppingBag, name: 'Comprinhas', c: '#C9826B' },
+    { Icon: Leaf,        name: 'Chácara',    c: '#8A9E7B' },
+    { Icon: ChefHat,     name: 'Receitas',   c: '#C9826B' },
+    { Icon: Heart,       name: 'Casal',      c: '#C9826B' },
+    { Icon: Sparkles,    name: 'Skincare',   c: '#9E7090' },
+    { Icon: PawPrint,    name: 'Pets',       c: '#B08A50' },
   ]
 
   return (
     <>
-      <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,500;1,600&display=swap" rel="stylesheet"/>
+      <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,500;1,600&display=swap"
+        rel="stylesheet"
+      />
       <style>{`
+/* ─── Reset & base ─────────────────────────────────────────── */
 .lp, .lp *, .lp *::before, .lp *::after { box-sizing:border-box; margin:0; padding:0; }
-.lp { font-family:'DM Sans',system-ui,sans-serif; background:#F5EDE3; color:#4A2E22; overflow-x:hidden; }
+.lp { font-family:'DM Sans',system-ui,sans-serif; background:#F5EDE3; color:#4A2E22; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
 .lp a { text-decoration:none; color:inherit; }
 .lp button { font-family:'DM Sans',system-ui,sans-serif; cursor:pointer; border:none; background:none; }
 
-/* nav */
+/* ─── Navigation ───────────────────────────────────────────── */
 .lp-nav {
   position:fixed; top:0; left:0; right:0; z-index:200;
-  height:62px; padding:0 clamp(16px,5vw,48px);
+  height:60px; padding:0 clamp(20px,5vw,56px);
   display:flex; align-items:center; justify-content:space-between;
-  background:rgba(253,248,243,0.92); backdrop-filter:blur(12px);
-  border-bottom:1px solid #E8D8CC;
+  background:rgba(245,237,227,.88); backdrop-filter:blur(16px) saturate(1.4);
+  border-bottom:1px solid rgba(232,216,204,.6);
 }
-.lp-nav-links { display:flex; gap:24px; }
-.lp-nav-links a { font-size:13px; font-weight:500; color:#8A6A5A; transition:color .2s; }
+.lp-nav-links { display:flex; align-items:center; gap:28px; }
+.lp-nav-links a { font-size:13px; font-weight:400; color:#8A6A5A; letter-spacing:.01em; transition:color .18s; }
 .lp-nav-links a:hover { color:#C9826B; }
-@media(max-width:680px){ .lp-nav-links { display:none; } }
+@media(max-width:700px) { .lp-nav-links { display:none; } }
 
-/* buttons */
+/* ─── Buttons ──────────────────────────────────────────────── */
 .btn {
   display:inline-flex; align-items:center; justify-content:center; gap:8px;
-  font-family:'DM Sans',system-ui,sans-serif; font-weight:600;
-  border-radius:100px; border:none; cursor:pointer; transition:all .22s; white-space:nowrap;
+  font-family:'DM Sans',system-ui,sans-serif; font-weight:500;
+  border-radius:100px; border:none; cursor:pointer;
+  transition:transform .2s, box-shadow .2s, background .18s;
+  white-space:nowrap; letter-spacing:.01em;
 }
 .btn-primary {
-  background:linear-gradient(135deg,#C9826B,#D4A96A); color:#FDF8F3;
-  box-shadow:0 4px 16px rgba(201,130,107,.35); font-size:14px; padding:12px 26px;
+  background:#C9826B; color:#FDF8F3;
+  box-shadow:0 4px 18px rgba(201,130,107,.32);
+  font-size:14px; padding:13px 28px;
 }
-.btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(201,130,107,.45); }
-.btn-outline { background:transparent; border:1.5px solid #C9826B; color:#C9826B; font-size:14px; padding:11px 24px; }
-.btn-outline:hover { background:rgba(201,130,107,.07); }
-.btn-lg { font-size:15px; padding:14px 32px; }
-.btn-sm { font-size:13px; padding:9px 20px; }
-.btn-white { background:#FDF8F3; color:#4A2E22; box-shadow:0 4px 14px rgba(74,46,34,.15); font-size:14px; padding:12px 26px; }
-.btn-white:hover { background:#fff; transform:translateY(-1px); }
+.btn-primary:hover { background:#B8705A; transform:translateY(-2px); box-shadow:0 8px 28px rgba(201,130,107,.42); }
+.btn-outline {
+  background:transparent; border:1.5px solid rgba(201,130,107,.5);
+  color:#C9826B; font-size:14px; padding:12px 26px;
+}
+.btn-outline:hover { background:rgba(201,130,107,.06); border-color:#C9826B; }
+.btn-lg { font-size:15px; padding:15px 34px; }
+.btn-sm { font-size:13px; padding:10px 20px; }
+.btn-dark { background:#4A2E22; color:#FDF8F3; font-size:14px; padding:13px 28px; box-shadow:0 4px 18px rgba(74,46,34,.22); }
+.btn-dark:hover { background:#3A2218; transform:translateY(-2px); }
+.btn-ghost-light { background:rgba(253,248,243,.12); border:1px solid rgba(253,248,243,.25); color:#FDF8F3; font-size:14px; padding:12px 26px; }
+.btn-ghost-light:hover { background:rgba(253,248,243,.2); }
 
-/* hero */
+/* ─── Hero ─────────────────────────────────────────────────── */
 .hero {
   min-height:100svh; background:#F5EDE3;
-  display:flex; flex-direction:column; align-items:center; justify-content:center;
-  text-align:center; padding:80px clamp(20px,6vw,80px) 60px;
-  position:relative; overflow:hidden;
+  display:flex; align-items:center;
+  padding:80px clamp(20px,6vw,72px) 60px;
+  gap:clamp(40px,6vw,80px);
 }
-.hero-deco { position:absolute; pointer-events:none; border-radius:50%; opacity:.45; }
-.hero-deco-1 { width:480px;height:480px;background:radial-gradient(circle,rgba(201,130,107,.18),transparent 65%);top:-15%;left:-10%; }
-.hero-deco-2 { width:360px;height:360px;background:radial-gradient(circle,rgba(138,158,123,.14),transparent 65%);bottom:-8%;right:-8%; }
-.hero-deco-3 { width:200px;height:200px;background:radial-gradient(circle,rgba(212,169,106,.16),transparent 65%);top:35%;right:8%; }
-.hero-badge {
+.hero-text { flex:1; max-width:560px; }
+.hero-visual { flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+@media(max-width:860px) { .hero { flex-direction:column; text-align:center; padding-top:100px; } .hero-visual { display:none; } }
+
+.hero-tag {
   display:inline-flex; align-items:center; gap:8px;
   background:#FDF8F3; border:1px solid #E8D8CC; border-radius:100px;
-  padding:6px 16px; margin-bottom:28px;
-  font-size:12px; font-weight:500; color:#8A6A5A;
-  box-shadow:0 2px 8px rgba(74,46,34,.08);
-  animation:fadeUp .7s ease both;
+  padding:5px 14px 5px 8px; margin-bottom:28px;
+  font-size:11.5px; font-weight:500; color:#8A6A5A; letter-spacing:.02em;
+  box-shadow:0 2px 8px rgba(74,46,34,.07);
+  animation:fadeUp .6s ease both;
 }
-.hero-badge-dot { width:6px;height:6px;border-radius:50%;background:linear-gradient(135deg,#C9826B,#D4A96A); }
+.hero-tag-dot {
+  width:22px; height:22px; border-radius:50%;
+  background:linear-gradient(135deg,#C9826B,#D4A96A);
+  display:flex; align-items:center; justify-content:center;
+}
+
 .hero-h1 {
   font-family:'Playfair Display',Georgia,serif;
-  font-size:clamp(38px,7.5vw,82px); font-weight:600;
-  line-height:1.08; letter-spacing:-.02em; color:#4A2E22;
-  margin-bottom:20px; animation:fadeUp .75s .1s ease both;
+  font-size:clamp(40px,7vw,76px); font-weight:600;
+  line-height:1.06; letter-spacing:-.025em; color:#4A2E22;
+  margin-bottom:22px; animation:fadeUp .7s .08s ease both;
 }
 .hero-h1 em { font-style:italic; font-weight:400; color:#C9826B; }
-.hero-callout {
+
+.hero-sub {
   font-family:'Cormorant Garamond',Georgia,serif;
-  font-style:italic; font-size:clamp(18px,2.8vw,26px); font-weight:400;
-  color:#8A6A5A; max-width:560px; line-height:1.6; margin-bottom:36px;
-  animation:fadeUp .75s .2s ease both;
+  font-style:italic; font-size:clamp(17px,2.4vw,22px); font-weight:400;
+  color:#8A6A5A; line-height:1.65; max-width:480px; margin-bottom:36px;
+  animation:fadeUp .7s .16s ease both;
 }
-.hero-btns { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; animation:fadeUp .75s .3s ease both; }
-.hero-avatars {
-  display:flex; align-items:center; gap:12px; margin-top:44px; flex-wrap:wrap; justify-content:center;
-  animation:fadeUp .75s .42s ease both; font-size:13px; font-weight:400; color:#8A6A5A;
+@media(max-width:860px) { .hero-sub { margin:0 auto 36px; } }
+
+.hero-btns { display:flex; gap:12px; flex-wrap:wrap; animation:fadeUp .7s .24s ease both; }
+@media(max-width:860px) { .hero-btns { justify-content:center; } }
+
+.hero-proof {
+  display:flex; align-items:center; gap:12px; margin-top:36px;
+  animation:fadeUp .7s .32s ease both; font-size:13px; color:#8A6A5A; font-weight:400;
 }
+@media(max-width:860px) { .hero-proof { justify-content:center; } }
 .av-stack { display:flex; }
-.av { width:32px;height:32px;border-radius:50%;border:2px solid #F5EDE3;margin-left:-8px;background:linear-gradient(135deg,#C9826B,#D4A96A);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:13px;font-weight:600;color:#FDF8F3; }
+.av {
+  width:30px; height:30px; border-radius:50%;
+  border:2px solid #F5EDE3; margin-left:-7px;
+  background:linear-gradient(135deg,#C9826B,#D4A96A);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display',serif; font-size:11px; font-weight:600; color:#FDF8F3;
+}
 .av:first-child { margin-left:0; }
 
-/* sections */
-.sec { padding:clamp(64px,9vw,100px) clamp(20px,6vw,64px); }
-.sec-inner { max-width:1120px; margin:0 auto; }
-.sec-label { font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#C9826B;margin-bottom:12px;display:flex;align-items:center;gap:8px; }
-.sec-label::before { content:'';width:18px;height:1.5px;background:#C9826B;border-radius:2px; }
-.sec-h2 { font-family:'Playfair Display',Georgia,serif;font-size:clamp(28px,4.5vw,48px);font-weight:600;line-height:1.15;letter-spacing:-.015em;color:#4A2E22; }
+/* Phone mockup */
+.phone-wrap { transform:rotate(3.5deg); filter:drop-shadow(0 24px 48px rgba(74,46,34,.18)); }
+.phone {
+  width:228px; height:454px; border-radius:36px;
+  background:#FDF8F3; border:2px solid #E0CEBC;
+  overflow:hidden; position:relative;
+}
+.phone-bar {
+  height:12px; background:#F5EDE3;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.phone-notch { width:52px; height:5px; border-radius:100px; background:#DCCABB; }
+.phone-body { padding:10px 14px 14px; }
+.phone-greeting { font-size:10.5px; color:#8A6A5A; margin-bottom:5px; font-weight:400; }
+.phone-title { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:19px; font-weight:500; color:#C9826B; margin-bottom:14px; }
+.phone-cat-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; }
+.phone-cat {
+  background:#F5EDE3; border-radius:11px; padding:9px 8px;
+  display:flex; align-items:center; gap:6px;
+  font-size:10px; font-weight:500; color:#4A2E22;
+  border:1px solid #EAD8CA;
+}
+.phone-divider { height:1px; background:#EDDFD3; margin:13px 0; }
+.phone-bottom { display:flex; justify-content:space-around; }
+.phone-nav-dot { width:5px; height:5px; border-radius:50%; background:#C9826B; }
+.phone-nav-dot.inactive { background:#DDD0C4; }
+
+/* ─── Stats ────────────────────────────────────────────────── */
+.stats-sec {
+  background:#FDF8F3;
+  border-top:1px solid #E8D8CC; border-bottom:1px solid #E8D8CC;
+  padding:clamp(48px,6vw,72px) clamp(20px,6vw,64px);
+}
+.stats-grid { max-width:900px; margin:0 auto; display:grid; grid-template-columns:repeat(4,1fr); gap:2px; }
+@media(max-width:680px) { .stats-grid { grid-template-columns:1fr 1fr; gap:clamp(24px,5vw,40px); } }
+.stat-item { text-align:center; padding:16px 8px; }
+.stat-n {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:clamp(32px,5vw,52px); font-weight:600;
+  color:#C9826B; line-height:1; letter-spacing:-.02em;
+}
+.stat-l { font-size:12px; font-weight:400; color:#8A6A5A; margin-top:7px; letter-spacing:.01em; }
+
+/* ─── Section scaffolding ──────────────────────────────────── */
+.sec { padding:clamp(72px,9vw,108px) clamp(20px,6vw,72px); }
+.sec-inner { max-width:1080px; margin:0 auto; }
+.sec-bg-alt { background:#FDF8F3; }
+.sec-header { margin-bottom:clamp(36px,5vw,52px); }
+.sec-label {
+  font-size:10.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase;
+  color:#C9826B; margin-bottom:14px; display:flex; align-items:center; gap:10px;
+}
+.sec-label::before { content:''; width:20px; height:1.5px; background:#C9826B; border-radius:2px; }
+.sec-h2 {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:clamp(28px,4.2vw,46px); font-weight:600;
+  line-height:1.12; letter-spacing:-.02em; color:#4A2E22;
+}
 .sec-h2 em { font-style:italic; font-weight:400; color:#C9826B; }
-.sec-sub { font-size:16px;font-weight:300;color:#8A6A5A;line-height:1.72;max-width:520px; }
-.sec-bg { background:#FDF8F3; }
+.sec-p { font-size:15px; font-weight:300; color:#8A6A5A; line-height:1.78; max-width:500px; margin-top:14px; }
 
-/* about strip */
-.about-strip { background:linear-gradient(135deg,#C9826B 0%,#D4A96A 100%);padding:clamp(40px,6vw,64px) clamp(20px,6vw,64px);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:2px; }
-@media(max-width:720px){ .about-strip { grid-template-columns:1fr 1fr; } }
-.about-stat { background:rgba(253,248,243,.12);padding:28px 24px;text-align:center;border-radius:4px; }
-.about-n { font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,42px);font-weight:600;color:#FDF8F3;line-height:1; }
-.about-l { font-size:12px;font-weight:500;letter-spacing:.06em;text-transform:uppercase;color:rgba(253,248,243,.7);margin-top:6px; }
+/* ─── Features (why) ───────────────────────────────────────── */
+.feat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,2vw,24px); margin-top:clamp(36px,5vw,52px); }
+@media(max-width:780px) { .feat-grid { grid-template-columns:1fr; } }
+.feat-card {
+  background:#F5EDE3; border-radius:20px; padding:clamp(24px,3vw,34px);
+  border:1px solid rgba(232,216,204,.8);
+  transition:transform .22s, box-shadow .22s;
+}
+.feat-card:hover { transform:translateY(-3px); box-shadow:0 10px 30px rgba(74,46,34,.1); }
+.feat-icon-wrap {
+  width:44px; height:44px; border-radius:14px;
+  display:flex; align-items:center; justify-content:center;
+  margin-bottom:18px;
+}
+.feat-title { font-family:'Playfair Display',serif; font-size:18px; font-weight:600; color:#4A2E22; margin-bottom:10px; line-height:1.2; }
+.feat-desc { font-size:14px; font-weight:300; color:#8A6A5A; line-height:1.72; }
 
-/* category grid */
-.cat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:48px; }
-@media(max-width:800px){ .cat-grid { grid-template-columns:1fr 1fr; } }
-@media(max-width:480px){ .cat-grid { grid-template-columns:1fr; } }
-.cat-card { border-radius:20px;padding:22px 20px;display:flex;align-items:flex-start;gap:14px;transition:transform .22s,box-shadow .22s;border:1.5px solid transparent; }
-.cat-card:hover { transform:translateY(-3px);box-shadow:0 8px 28px rgba(74,46,34,.10); }
-.cat-icon-wrap { width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:rgba(255,255,255,.55); }
-.cat-name { font-family:'Playfair Display',serif;font-size:16px;font-weight:600;color:#4A2E22;margin-bottom:4px; }
-.cat-desc { font-size:13px;font-weight:300;color:#8A6A5A;line-height:1.5; }
+/* ─── Category grid ────────────────────────────────────────── */
+.cat-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(10px,1.5vw,16px); margin-top:clamp(36px,5vw,52px); }
+@media(max-width:820px) { .cat-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:500px) { .cat-grid { grid-template-columns:1fr; } }
+.cat-card {
+  background:#FDF8F3; border:1px solid #E8D8CC; border-radius:18px;
+  padding:20px 18px; display:flex; align-items:flex-start; gap:14px;
+  transition:transform .2s, box-shadow .2s, border-color .2s;
+}
+.cat-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(74,46,34,.09); border-color:#D4BEB2; }
+.cat-icon { width:38px; height:38px; border-radius:10px; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+.cat-name { font-family:'Playfair Display',serif; font-size:15px; font-weight:600; color:#4A2E22; margin-bottom:5px; }
+.cat-desc { font-size:12.5px; font-weight:300; color:#8A6A5A; line-height:1.55; }
 
-/* testimonials */
-.testi-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px; }
-@media(max-width:820px){ .testi-grid { grid-template-columns:1fr 1fr; } }
-@media(max-width:520px){ .testi-grid { grid-template-columns:1fr; } }
-.testi-card { background:#FDF8F3;border:1px solid #E8D8CC;border-radius:20px;padding:26px 22px;transition:transform .22s,box-shadow .22s; }
-.testi-card:hover { transform:translateY(-3px);box-shadow:0 8px 24px rgba(74,46,34,.10); }
-.testi-stars { display:flex;gap:3px;margin-bottom:14px; }
-.testi-text { font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:17px;font-weight:400;color:#4A2E22;line-height:1.6;margin-bottom:18px; }
-.testi-rule { width:24px;height:1.5px;background:#E8D8CC;margin-bottom:16px; }
-.testi-author { display:flex;align-items:center;gap:10px; }
-.testi-av { width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#C9826B,#D4A96A);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;color:#FDF8F3;flex-shrink:0; }
-.testi-name { font-size:13px;font-weight:600;color:#4A2E22; }
-.testi-role { font-size:11px;color:#8A6A5A;margin-top:1px; }
+/* ─── Quote ────────────────────────────────────────────────── */
+.quote-sec {
+  background:#4A2E22; padding:clamp(64px,9vw,96px) clamp(20px,10vw,120px);
+  text-align:center; position:relative; overflow:hidden;
+}
+.quote-sec::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 80% 70% at 50% 50%, rgba(201,130,107,.12), transparent 60%);
+}
+.quote-ornament {
+  font-family:'Cormorant Garamond',serif; font-style:italic;
+  font-size:clamp(80px,14vw,140px); line-height:.65; color:rgba(212,169,106,.2);
+  margin-bottom:-10px; display:block; position:relative; z-index:1;
+}
+.quote-text {
+  font-family:'Cormorant Garamond',Georgia,serif; font-style:italic;
+  font-size:clamp(20px,3.2vw,32px); font-weight:400; color:#FDF8F3;
+  line-height:1.58; max-width:760px; margin:0 auto;
+  position:relative; z-index:1;
+}
+.quote-author {
+  margin-top:28px; font-size:12px; font-weight:500; letter-spacing:.1em;
+  text-transform:uppercase; color:rgba(253,248,243,.4); position:relative; z-index:1;
+}
+.quote-rule {
+  width:32px; height:1.5px; background:rgba(212,169,106,.5);
+  margin:18px auto 0; position:relative; z-index:1;
+}
 
-/* pricing */
-.price-grid { display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:780px;margin:48px auto 0; }
-@media(max-width:560px){ .price-grid { grid-template-columns:1fr; } }
-.price-card { border-radius:24px;padding:clamp(28px,4vw,40px);border:1.5px solid #E8D8CC;background:#FDF8F3;display:flex;flex-direction:column;transition:transform .22s,box-shadow .22s; }
-.price-card:hover { transform:translateY(-4px);box-shadow:0 12px 36px rgba(74,46,34,.12); }
-.price-featured { background:linear-gradient(145deg,#C9826B,#D4A96A);border-color:transparent;box-shadow:0 16px 40px rgba(201,130,107,.35); }
-.price-featured:hover { box-shadow:0 22px 48px rgba(201,130,107,.45); }
-.price-badge { font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#D4A96A;margin-bottom:20px;display:flex;align-items:center;gap:6px; }
-.price-featured .price-badge { color:rgba(253,248,243,.8); }
-.price-badge::after { content:'';flex:1;height:1px;background:rgba(212,169,106,.2); }
-.price-featured .price-badge::after { background:rgba(253,248,243,.2); }
-.price-name { font-family:'Playfair Display',serif;font-size:24px;font-weight:600;color:#4A2E22;margin-bottom:8px; }
+/* ─── Testimonials ─────────────────────────────────────────── */
+.testi-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:clamp(12px,2vw,20px); margin-top:clamp(36px,5vw,52px); }
+@media(max-width:840px) { .testi-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:540px) { .testi-grid { grid-template-columns:1fr; } }
+.testi-card {
+  background:#FDF8F3; border:1px solid #E8D8CC; border-radius:20px;
+  padding:clamp(20px,3vw,28px); display:flex; flex-direction:column;
+  transition:transform .2s, box-shadow .2s;
+}
+.testi-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(74,46,34,.1); }
+.testi-stars { display:flex; gap:3px; margin-bottom:16px; }
+.testi-q {
+  font-family:'Cormorant Garamond',Georgia,serif; font-style:italic;
+  font-size:17px; font-weight:400; color:#4A2E22; line-height:1.6;
+  flex:1; margin-bottom:20px;
+}
+.testi-sep { width:20px; height:1.5px; background:#E8D8CC; margin-bottom:16px; }
+.testi-author { display:flex; align-items:center; gap:10px; }
+.testi-av {
+  width:34px; height:34px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,#C9826B,#D4A96A);
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display',serif; font-size:13px; font-weight:600; color:#FDF8F3;
+}
+.testi-name { font-size:13px; font-weight:600; color:#4A2E22; }
+.testi-role { font-size:11px; color:#8A6A5A; margin-top:2px; }
+
+/* ─── Pricing ──────────────────────────────────────────────── */
+.price-grid { display:grid; grid-template-columns:1fr 1fr; gap:clamp(14px,2vw,24px); max-width:760px; margin:clamp(36px,5vw,52px) auto 0; }
+@media(max-width:560px) { .price-grid { grid-template-columns:1fr; } }
+.price-card {
+  border-radius:24px; padding:clamp(28px,4vw,38px);
+  border:1.5px solid #E8D8CC; background:#FDF8F3;
+  display:flex; flex-direction:column;
+  transition:transform .22s, box-shadow .22s;
+}
+.price-card:hover { transform:translateY(-4px); box-shadow:0 14px 40px rgba(74,46,34,.12); }
+.price-featured { background:#C9826B; border-color:transparent; box-shadow:0 16px 44px rgba(201,130,107,.38); }
+.price-featured:hover { box-shadow:0 24px 56px rgba(201,130,107,.48); }
+.price-eyebrow {
+  font-size:10px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:#D4A96A; margin-bottom:18px; display:flex; align-items:center; gap:8px;
+}
+.price-featured .price-eyebrow { color:rgba(253,248,243,.65); }
+.price-eyebrow::after { content:''; flex:1; height:1px; background:rgba(212,169,106,.18); }
+.price-featured .price-eyebrow::after { background:rgba(253,248,243,.18); }
+.price-name { font-family:'Playfair Display',serif; font-size:22px; font-weight:600; color:#4A2E22; margin-bottom:10px; }
 .price-featured .price-name { color:#FDF8F3; }
-.price-val { font-family:'Playfair Display',serif;font-size:50px;font-weight:600;line-height:1;color:#4A2E22;margin-bottom:4px; }
-.price-featured .price-val { color:#FDF8F3; }
-.price-val sup { font-size:18px;vertical-align:top;margin-top:12px; }
-.price-val .mo { font-size:15px;font-weight:400;opacity:.5; }
-.price-desc { font-size:13px;font-weight:300;color:#8A6A5A;margin-bottom:24px; }
-.price-featured .price-desc { color:rgba(253,248,243,.65); }
-.price-divider { height:1px;background:#E8D8CC;margin-bottom:22px; }
-.price-featured .price-divider { background:rgba(253,248,243,.18); }
-.price-list { list-style:none;flex:1;margin-bottom:28px;display:flex;flex-direction:column;gap:11px; }
-.price-list li { display:flex;align-items:flex-start;gap:10px;font-size:14px;font-weight:300;color:#8A6A5A;line-height:1.4; }
-.price-featured .price-list li { color:rgba(253,248,243,.85); }
-.chk { width:17px;height:17px;border-radius:50%;flex-shrink:0;margin-top:1px;background:rgba(201,130,107,.12);display:flex;align-items:center;justify-content:center; }
+.price-amount { font-family:'Playfair Display',serif; font-size:48px; font-weight:600; line-height:1; color:#4A2E22; }
+.price-featured .price-amount { color:#FDF8F3; }
+.price-amount sup { font-size:16px; vertical-align:top; margin-top:10px; }
+.price-per { font-size:14px; font-weight:300; color:#8A6A5A; margin-top:4px; margin-bottom:20px; }
+.price-featured .price-per { color:rgba(253,248,243,.55); }
+.price-line { height:1px; background:#E8D8CC; margin-bottom:20px; }
+.price-featured .price-line { background:rgba(253,248,243,.18); }
+.price-list { list-style:none; flex:1; display:flex; flex-direction:column; gap:11px; margin-bottom:28px; }
+.price-list li { display:flex; align-items:flex-start; gap:10px; font-size:13.5px; font-weight:300; color:#8A6A5A; line-height:1.45; }
+.price-featured .price-list li { color:rgba(253,248,243,.8); }
+.chk { width:17px; height:17px; border-radius:50%; flex-shrink:0; margin-top:1px; background:rgba(201,130,107,.1); display:flex; align-items:center; justify-content:center; }
 .price-featured .chk { background:rgba(253,248,243,.2); }
 
-/* faq */
-.faq-list { max-width:680px;margin:44px auto 0; }
+/* ─── FAQ ──────────────────────────────────────────────────── */
+.faq-list { max-width:660px; margin:clamp(36px,5vw,52px) auto 0; }
 .fq { border-bottom:1px solid #E8D8CC; }
 .fq:first-child { border-top:1px solid #E8D8CC; }
-.fq-btn { width:100%;display:flex;align-items:center;justify-content:space-between;padding:18px 0;gap:14px;background:none;border:none;cursor:pointer;text-align:left; }
-.fq-q { font-family:'Playfair Display',serif;font-size:17px;font-weight:500;color:#4A2E22;flex:1;line-height:1.3; }
-.fq-icon { width:28px;height:28px;border-radius:50%;flex-shrink:0;border:1.5px solid #E8D8CC;color:#C9826B;display:flex;align-items:center;justify-content:center;font-size:17px;transition:transform .28s,background .2s,border-color .2s; }
-.fq.open .fq-icon { transform:rotate(45deg);background:#C9826B;border-color:#C9826B;color:#fff; }
-.fq-a { max-height:0;overflow:hidden;transition:max-height .36s ease,padding .24s;padding:0;font-size:14px;font-weight:300;color:#8A6A5A;line-height:1.75; }
-.fq.open .fq-a { max-height:220px;padding-bottom:18px; }
+.fq-btn { width:100%; display:flex; align-items:center; justify-content:space-between; padding:19px 0; gap:14px; text-align:left; }
+.fq-q { font-family:'Playfair Display',serif; font-size:16.5px; font-weight:500; color:#4A2E22; flex:1; line-height:1.35; }
+.fq-icon {
+  width:26px; height:26px; border-radius:50%; flex-shrink:0;
+  border:1.5px solid #D4BEB2; color:#C9826B;
+  display:flex; align-items:center; justify-content:center; font-size:16px;
+  transition:transform .26s, background .2s, border-color .2s;
+}
+.fq.open .fq-icon { transform:rotate(45deg); background:#C9826B; border-color:#C9826B; color:#FDF8F3; }
+.fq-a { max-height:0; overflow:hidden; transition:max-height .34s ease, padding .22s; font-size:14px; font-weight:300; color:#8A6A5A; line-height:1.78; }
+.fq.open .fq-a { max-height:200px; padding-bottom:18px; }
 
-/* cta */
-.cta-sec { background:linear-gradient(135deg,#4A2E22 0%,#6A3E2A 100%);padding:clamp(64px,10vw,100px) clamp(20px,6vw,64px);text-align:center;position:relative;overflow:hidden; }
-.cta-sec::before { content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 70% 60% at 50% 50%,rgba(201,130,107,.18),transparent 60%); }
-.cta-h { font-family:'Playfair Display',Georgia,serif;font-size:clamp(32px,6vw,64px);font-weight:600;line-height:1.15;letter-spacing:-.015em;color:#FDF8F3;margin-bottom:18px; }
-.cta-h em { font-style:italic;font-weight:400;color:#D4A96A; }
-.cta-callout { font-family:'Cormorant Garamond',Georgia,serif;font-style:italic;font-size:clamp(17px,2.5vw,22px);color:rgba(253,248,243,.6);max-width:480px;margin:0 auto 36px;line-height:1.65; }
+/* ─── CTA ──────────────────────────────────────────────────── */
+.cta-sec {
+  background:#3A2218; padding:clamp(72px,10vw,108px) clamp(20px,6vw,72px);
+  text-align:center; position:relative; overflow:hidden;
+}
+.cta-sec::before {
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(ellipse 60% 70% at 50% 50%, rgba(201,130,107,.14), transparent 55%);
+}
+.cta-inner { max-width:600px; margin:0 auto; position:relative; z-index:1; }
+.cta-h {
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:clamp(32px,6vw,60px); font-weight:600; line-height:1.12;
+  letter-spacing:-.02em; color:#FDF8F3; margin-bottom:16px;
+}
+.cta-h em { font-style:italic; font-weight:400; color:#D4A96A; }
+.cta-sub {
+  font-family:'Cormorant Garamond',Georgia,serif; font-style:italic;
+  font-size:clamp(16px,2.2vw,21px); color:rgba(253,248,243,.5);
+  line-height:1.68; max-width:460px; margin:0 auto 38px;
+}
+.cta-btns { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
 
-/* footer */
-.footer { background:#3A2218;padding:28px clamp(20px,6vw,64px);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px; }
-.footer-copy { font-size:12px;color:rgba(253,248,243,.25); }
-.footer-links { display:flex;gap:16px; }
-.footer-links a { font-size:12px;color:rgba(253,248,243,.25);transition:color .2s; }
-.footer-links a:hover { color:rgba(253,248,243,.55); }
+/* ─── Footer ───────────────────────────────────────────────── */
+.footer {
+  background:#2E1A10; padding:24px clamp(20px,6vw,72px);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;
+}
+.footer-copy { font-size:11.5px; color:rgba(253,248,243,.2); }
+.footer-links { display:flex; gap:18px; }
+.footer-links a { font-size:11.5px; color:rgba(253,248,243,.2); transition:color .18s; }
+.footer-links a:hover { color:rgba(253,248,243,.5); }
+@media(max-width:480px) { .footer { flex-direction:column; align-items:flex-start; } }
 
-/* animations */
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:none} }
-.up { opacity:0;transform:translateY(26px);transition:opacity .6s ease,transform .6s ease; }
-.up:nth-child(2){transition-delay:.08s} .up:nth-child(3){transition-delay:.16s}
-.up:nth-child(4){transition-delay:.24s} .up:nth-child(5){transition-delay:.32s}
-.up:nth-child(6){transition-delay:.40s} .up:nth-child(7){transition-delay:.48s}
-.up:nth-child(8){transition-delay:.56s} .up:nth-child(9){transition-delay:.64s}
-.in { opacity:1 !important;transform:none !important; }
-@media(max-width:480px){ .sec{padding:56px 20px} .cta-sec{padding:60px 20px} .footer{flex-direction:column;align-items:flex-start} }
+/* ─── Animations ───────────────────────────────────────────── */
+@keyframes fadeUp { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+.up { opacity:0; transform:translateY(22px); transition:opacity .55s ease, transform .55s ease; }
+.up:nth-child(2) { transition-delay:.07s } .up:nth-child(3) { transition-delay:.14s }
+.up:nth-child(4) { transition-delay:.21s } .up:nth-child(5) { transition-delay:.28s }
+.up:nth-child(6) { transition-delay:.35s } .up:nth-child(7) { transition-delay:.42s }
+.up:nth-child(8) { transition-delay:.49s } .up:nth-child(9) { transition-delay:.56s }
+.in { opacity:1 !important; transform:none !important; }
+
+@media(max-width:480px) {
+  .sec { padding:60px 20px; }
+  .quote-sec { padding:60px 24px; }
+  .cta-sec { padding:68px 24px; }
+}
       `}</style>
 
       <div className="lp">
 
-        {/* NAV */}
+        {/* ── NAV ──────────────────────────────────────────────── */}
         <header className="lp-nav">
           <Logo />
           <nav className="lp-nav-links">
@@ -248,82 +432,166 @@ export default function LandingPage() {
             <a href="#depoimentos">Comunidade</a>
             <a href="#planos">Planos</a>
           </nav>
-          <Link href="/auth/login" className="btn btn-primary btn-sm">Acessar o app</Link>
+          <Link href="/auth/login" className="btn btn-primary btn-sm">Entrar no app</Link>
         </header>
 
-        {/* HERO */}
+        {/* ── HERO ─────────────────────────────────────────────── */}
         <section className="hero">
-          <div className="hero-deco hero-deco-1" />
-          <div className="hero-deco hero-deco-2" />
-          <div className="hero-deco hero-deco-3" />
-
-          <div className="hero-badge">
-            <span className="hero-badge-dot" />
-            Aplicativo oficial da Josi
-          </div>
-
-          <h1 className="hero-h1">
-            Tudo que eu amo<br/>
-            <em>em um só lugar</em>
-          </h1>
-
-          <p className="hero-callout">
-            Receitas, skincare, vida no campo, comprinhas, casal, maternidade — meu conteúdo do jeito que eu gosto de fazer, direto pra você.
-          </p>
-
-          <div className="hero-btns">
-            <Link href="/auth/login" className="btn btn-primary btn-lg">
-              Quero acessar agora
-              <ArrowRight size={16} strokeWidth={2.5} />
-            </Link>
-            <a href="#conteudo" className="btn btn-outline btn-lg">
-              <Play size={14} strokeWidth={2.5} />
-              Ver o conteúdo
-            </a>
-          </div>
-
-          <div className="hero-avatars">
-            <div className="av-stack">
-              <div className="av">A</div><div className="av">C</div>
-              <div className="av">M</div><div className="av">L</div><div className="av">R</div>
+          <div className="hero-text">
+            <div className="hero-tag">
+              <div className="hero-tag-dot">
+                <Leaf size={11} color="#FDF8F3" strokeWidth={2} />
+              </div>
+              App oficial · Josi Vida &amp; Conteúdo
             </div>
-            <span>+1.200 pessoas já fazem parte da comunidade</span>
+
+            <h1 className="hero-h1">
+              Tudo que eu vivo<br />e amo,{' '}
+              <em>num lugar só<br />pra você</em>
+            </h1>
+
+            <p className="hero-sub">
+              Receitas que saíram da minha cozinha, skincare do jeito que funciona, comprinhas que me apaixonei — reunido aqui, com muito carinho.
+            </p>
+
+            <div className="hero-btns">
+              <Link href="/auth/login" className="btn btn-primary btn-lg">
+                Quero fazer parte
+                <ArrowRight size={16} strokeWidth={2} />
+              </Link>
+              <a href="#conteudo" className="btn btn-outline btn-lg">
+                Ver o conteúdo
+              </a>
+            </div>
+
+            <div className="hero-proof">
+              <div className="av-stack">
+                {['A','C','M','L','R'].map((l, i) => (
+                  <div key={i} className="av">{l}</div>
+                ))}
+              </div>
+              <span>+1.200 pessoas já fazem parte</span>
+            </div>
+          </div>
+
+          {/* Phone mockup */}
+          <div className="hero-visual">
+            <div className="phone-wrap">
+              <div className="phone">
+                <div className="phone-bar"><div className="phone-notch" /></div>
+                <div className="phone-body">
+                  <div className="phone-greeting">Oi, bem-vinda de volta!</div>
+                  <div className="phone-title">Josi · Vida &amp; Conteúdo</div>
+                  <div className="phone-cat-grid">
+                    {phoneCats.map(({ Icon, name, c }) => (
+                      <div key={name} className="phone-cat">
+                        <Icon size={13} color={c} strokeWidth={1.75} />
+                        {name}
+                      </div>
+                    ))}
+                  </div>
+                  <div className="phone-divider" />
+                  <div style={{ fontSize: 10, color: '#8A6A5A', marginBottom: 8, fontWeight: 500, letterSpacing: '.04em', textTransform: 'uppercase' }}>Hoje na chácara</div>
+                  <div style={{ background: 'linear-gradient(135deg,rgba(201,130,107,.12),rgba(212,169,106,.1))', borderRadius: 12, padding: '10px 12px', border: '1px solid rgba(201,130,107,.18)' }}>
+                    <div style={{ fontSize: 11, fontWeight: 600, color: '#4A2E22', marginBottom: 3 }}>Receita: Pão de queijo da fazenda</div>
+                    <div style={{ fontSize: 10, color: '#8A6A5A', fontWeight: 300 }}>Simples, rápido e que todo mundo ama</div>
+                  </div>
+                  <div className="phone-divider" />
+                  <div className="phone-bottom">
+                    <div className="phone-nav-dot" />
+                    <div className="phone-nav-dot inactive" />
+                    <div className="phone-nav-dot inactive" />
+                    <div className="phone-nav-dot inactive" />
+                    <div className="phone-nav-dot inactive" />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
-        {/* STATS */}
-        <div className="about-strip">
-          {[
-            { n:'280k', l:'seguidoras no TikTok' },
-            { n:'157k', l:'inscritas no YouTube' },
-            { n:'61,6k', l:'seguidoras no Instagram' },
-            { n:'+1.200', l:'membros no app' },
-          ].map(s => (
-            <div key={s.l} className="about-stat up">
-              <div className="about-n">{s.n}</div>
-              <div className="about-l">{s.l}</div>
-            </div>
-          ))}
+        {/* ── STATS ────────────────────────────────────────────── */}
+        <div className="stats-sec">
+          <div className="stats-grid">
+            {[
+              { n: '280k',   l: 'seguidoras no TikTok'   },
+              { n: '157k',   l: 'inscritas no YouTube'   },
+              { n: '61,6k',  l: 'seguidoras no Instagram' },
+              { n: '+1.200', l: 'membros no app'          },
+            ].map(s => (
+              <div key={s.l} className="stat-item up">
+                <div className="stat-n">{s.n}</div>
+                <div className="stat-l">{s.l}</div>
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* CATEGORIES */}
-        <section className="sec" id="conteudo">
+        {/* ── FEATURES / POR QUÊ ───────────────────────────────── */}
+        <section className="sec sec-bg-alt" id="sobre">
           <div className="sec-inner">
-            <div style={{ maxWidth:580, marginBottom:8 }}>
-              <div className="sec-label up">Categorias</div>
+            <div className="sec-header">
+              <div className="sec-label up">Por que o app</div>
               <h2 className="sec-h2 up">
-                Tudo que eu compartilho,<br/><em>organizado pra você</em>
+                Um espaço criado com<br /><em>carinho pra você</em>
               </h2>
-              <p className="sec-sub up" style={{ marginTop:12 }}>
-                Do campo à cozinha, da skincare aos pets — cada cantinho da minha vida tem um espaço aqui dentro.
+              <p className="sec-p up">
+                Não é mais um aplicativo qualquer. É onde a Josi coloca o que ela ama — organizado, fácil de achar e com a cara dela.
               </p>
             </div>
+            <div className="feat-grid">
+              {[
+                {
+                  Icon: Layers,
+                  title: 'Conteúdo organizado',
+                  desc: 'Tudo no lugar certo — sem ficar garimpando em mil plataformas. Receita, skincare, chácara: cada coisa no seu cantinho.',
+                  bg: 'rgba(201,130,107,.1)',
+                  color: '#C9826B',
+                },
+                {
+                  Icon: MessageCircle,
+                  title: 'Comunidade de verdade',
+                  desc: 'Um espaço seguro, acolhedor e sem julgamentos. A ideia é que pareça uma roda de amigas — porque é exatamente isso.',
+                  bg: 'rgba(138,158,123,.1)',
+                  color: '#8A9E7B',
+                },
+                {
+                  Icon: Repeat2,
+                  title: 'Sempre tem novidade',
+                  desc: 'A Josi adiciona conteúdo toda semana — receita nova, tutorial de skincare, comprinhas. Nunca vai faltar o que explorar.',
+                  bg: 'rgba(212,169,106,.1)',
+                  color: '#D4A96A',
+                },
+              ].map(({ Icon, title, desc, bg, color }) => (
+                <div key={title} className="feat-card up">
+                  <div className="feat-icon-wrap" style={{ background: bg }}>
+                    <Icon size={22} color={color} strokeWidth={1.75} />
+                  </div>
+                  <div className="feat-title">{title}</div>
+                  <div className="feat-desc">{desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
+        {/* ── CATEGORIES ───────────────────────────────────────── */}
+        <section className="sec" id="conteudo">
+          <div className="sec-inner">
+            <div className="sec-header">
+              <div className="sec-label up">Categorias</div>
+              <h2 className="sec-h2 up">
+                Cada cantinho da minha vida<br /><em>tem um espaço aqui</em>
+              </h2>
+              <p className="sec-p up">
+                Do campo à cozinha, da skincare às comprinhas — tudo que a Josi faz com amor, organizado pra você.
+              </p>
+            </div>
             <div className="cat-grid">
-              {cats.map(({ Icon, name, color, border, iconColor, desc }) => (
-                <div key={name} className="cat-card up" style={{ background:color, borderColor:border }}>
-                  <div className="cat-icon-wrap">
-                    <Icon size={20} color={iconColor} strokeWidth={1.75} />
+              {cats.map(({ Icon, name, iconColor, iconBg, desc }) => (
+                <div key={name} className="cat-card up">
+                  <div className="cat-icon" style={{ background: iconBg }}>
+                    <Icon size={19} color={iconColor} strokeWidth={1.75} />
                   </div>
                   <div>
                     <div className="cat-name">{name}</div>
@@ -335,38 +603,44 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* QUOTE */}
-        <div style={{ background:'#FDF8F3', borderTop:'1px solid #E8D8CC', borderBottom:'1px solid #E8D8CC', padding:'clamp(40px,7vw,72px) clamp(20px,10vw,120px)', textAlign:'center' }}>
-          <div className="up" style={{ display:'flex', justifyContent:'center', marginBottom:20 }}>
-            <Sprout size={28} color="#8A9E7B" strokeWidth={1.5} />
-          </div>
-          <p className="up" style={{ fontFamily:"'Cormorant Garamond',Georgia,serif", fontStyle:'italic', fontWeight:400, fontSize:'clamp(20px,3.5vw,34px)', color:'#4A2E22', lineHeight:1.5, maxWidth:780, margin:'0 auto' }}>
-            "Quero que você se sinta em casa aqui — como se fosse uma conversa de amigas, com tudo que aprendi vivendo no campo, cuidando da família e criando conteúdo com muito amor."
+        {/* ── QUOTE ────────────────────────────────────────────── */}
+        <div className="quote-sec">
+          <span className="quote-ornament up">"</span>
+          <p className="quote-text up">
+            Criei esse app porque queria um espaço nosso. Só seu e meu. Como se você estivesse aqui na chácara, tomando um café comigo e a gente conversando sobre tudo.
           </p>
-          <p className="up" style={{ marginTop:20, fontSize:13, fontWeight:600, letterSpacing:'.06em', textTransform:'uppercase', color:'#8A6A5A' }}>
-            — Josi, Szewczuk Ferraz
-          </p>
+          <div className="quote-rule up" />
+          <p className="quote-author up">Josiane Ferraz</p>
         </div>
 
-        {/* TESTIMONIALS */}
-        <section className="sec" id="depoimentos">
+        {/* ── TESTIMONIALS ─────────────────────────────────────── */}
+        <section className="sec sec-bg-alt" id="depoimentos">
           <div className="sec-inner">
-            <div style={{ marginBottom:8 }}>
+            <div className="sec-header">
               <div className="sec-label up">Comunidade</div>
-              <h2 className="sec-h2 up">O que as meninas <em>estão achando</em></h2>
+              <h2 className="sec-h2 up">O que as meninas <em>estão falando</em></h2>
             </div>
             <div className="testi-grid">
               {[
-                { i:'A', name:'Ana Paula', role:'Membro desde o lançamento', text:'"Finalmente tudo em um lugar só! Adoro a parte de receitas — já fiz três e ficaram incríveis. A comunidade é muito acolhedora."' },
-                { i:'C', name:'Carol M.',   role:'Seguiu da skincare',        text:'"A rotina de skincare da Josi mudou minha pele. Simples, sem complicação. E ter o passo a passo no app facilita demais."' },
-                { i:'M', name:'Mariana T.', role:'Fã do canal no YouTube',    text:'"Parece que a Josi está do lado falando comigo. O tom é tão gostoso, parece uma amiga mesmo. Adoro os vídeos da chácara."' },
+                {
+                  i: 'A', name: 'Ana Paula S.', role: 'Membro desde o lançamento',
+                  text: '"Finalmente tudo num só lugar! Já fiz três receitas da Josi e as três deram certo. E a comunidade é muito acolhedora — me sinto em casa."',
+                },
+                {
+                  i: 'C', name: 'Carol M.', role: 'Veio pelo skincare',
+                  text: '"A rotina de pele da Josi mudou minha vida. Simples, sem complicação. Ter o passo a passo no app facilita demais — abro toda manhã."',
+                },
+                {
+                  i: 'M', name: 'Mariana T.', role: 'Fã do canal no YouTube',
+                  text: '"Parece que ela está do meu lado falando. O tom é tão gostoso, parece uma amiga de verdade. Adoro os vídeos da chácara no app."',
+                },
               ].map((t, i) => (
-                <div key={t.name} className="testi-card up" style={{ transitionDelay:`${i * 0.1}s` }}>
+                <div key={t.name} className="testi-card up" style={{ transitionDelay: `${i * 0.1}s` }}>
                   <div className="testi-stars">
-                    {[...Array(5)].map((_, k) => <Star key={k} size={13} color="#D4A96A" fill="#D4A96A" />)}
+                    {[...Array(5)].map((_, k) => <Star key={k} size={12} color="#D4A96A" fill="#D4A96A" />)}
                   </div>
-                  <p className="testi-text">{t.text}</p>
-                  <div className="testi-rule" />
+                  <p className="testi-q">{t.text}</p>
+                  <div className="testi-sep" />
                   <div className="testi-author">
                     <div className="testi-av">{t.i}</div>
                     <div>
@@ -380,67 +654,91 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* PRICING */}
-        <section className="sec sec-bg" id="planos">
-          <div className="sec-inner" style={{ textAlign:'center' }}>
-            <div className="sec-label up" style={{ justifyContent:'center' }}>Planos</div>
-            <h2 className="sec-h2 up">Comece de graça,<br/><em>vá mais longe com Premium</em></h2>
-            <p className="sec-sub up" style={{ margin:'12px auto 0', textAlign:'center' }}>
-              Crie sua conta e explore — sem precisar de cartão de crédito.
+        {/* ── PRICING ──────────────────────────────────────────── */}
+        <section className="sec" id="planos">
+          <div className="sec-inner" style={{ textAlign: 'center' }}>
+            <div className="sec-label up" style={{ justifyContent: 'center' }}>Planos</div>
+            <h2 className="sec-h2 up">Comece de graça,<br /><em>vá mais longe com Premium</em></h2>
+            <p className="sec-p up" style={{ margin: '14px auto 0', textAlign: 'center' }}>
+              Crie sua conta agora — sem precisar de cartão.
             </p>
             <div className="price-grid">
+              {/* Free */}
               <div className="price-card up">
                 <div className="price-name">Gratuito</div>
-                <div className="price-val">R$<sup></sup>0<span className="mo">/mês</span></div>
-                <div className="price-desc">Para conhecer e se conectar</div>
-                <div className="price-divider" />
+                <div className="price-amount">R$<sup></sup>0</div>
+                <div className="price-per">para sempre</div>
+                <div className="price-line" />
                 <ul className="price-list">
-                  {['Acesso à comunidade','Conteúdo introdutório','Perfil personalizado','Publicações e interações'].map(item => (
+                  {['Acesso à comunidade', 'Conteúdo introdutório', 'Perfil personalizado', 'Publicações e interações'].map(item => (
                     <li key={item}>
                       <span className="chk"><Check size={9} color="#C9826B" strokeWidth={3} /></span>
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Link href="/auth/login" className="btn btn-outline" style={{ width:'100%' }}>
+                <Link href="/auth/login" className="btn btn-outline" style={{ width: '100%' }}>
                   Criar conta grátis
                 </Link>
               </div>
+              {/* Premium */}
               <div className="price-card price-featured up">
-                <div className="price-badge">Mais escolhido</div>
+                <div className="price-eyebrow">Mais escolhido</div>
                 <div className="price-name">Premium</div>
-                <div className="price-val"><sup>R$</sup>47<span className="mo">/mês</span></div>
-                <div className="price-desc">Acesso completo a tudo</div>
-                <div className="price-divider" />
+                <div className="price-amount"><sup>R$</sup>47</div>
+                <div className="price-per">por mês · cancele quando quiser</div>
+                <div className="price-line" />
                 <ul className="price-list">
-                  {['Tudo do plano Gratuito','Cursos completos da Josi','Receitas e tutoriais exclusivos','Skincare — rotina completa','Conteúdo da chácara e pets','Novos conteúdos toda semana'].map(item => (
+                  {[
+                    'Tudo do plano Gratuito',
+                    'Cursos completos da Josi',
+                    'Receitas e tutoriais exclusivos',
+                    'Rotina completa de skincare',
+                    'Conteúdo da chácara e dos pets',
+                    'Novidades toda semana',
+                  ].map(item => (
                     <li key={item}>
                       <span className="chk"><Check size={9} color="#FDF8F3" strokeWidth={3} /></span>
                       {item}
                     </li>
                   ))}
                 </ul>
-                <Link href="/auth/login" className="btn btn-white" style={{ width:'100%' }}>
-                  Assinar agora
-                  <ArrowRight size={15} strokeWidth={2.5} />
+                <Link href="/auth/login" className="btn btn-dark" style={{ width: '100%', background: '#FDF8F3', color: '#4A2E22' }}>
+                  Quero o Premium
+                  <ArrowRight size={15} strokeWidth={2} />
                 </Link>
               </div>
             </div>
           </div>
         </section>
 
-        {/* FAQ */}
-        <section className="sec" id="faq" style={{ paddingTop:0 }}>
-          <div className="sec-inner" style={{ textAlign:'center' }}>
-            <div className="sec-label up" style={{ justifyContent:'center' }}>Dúvidas</div>
+        {/* ── FAQ ──────────────────────────────────────────────── */}
+        <section className="sec sec-bg-alt" id="faq" style={{ paddingTop: 0 }}>
+          <div className="sec-inner" style={{ textAlign: 'center' }}>
+            <div className="sec-label up" style={{ justifyContent: 'center' }}>Dúvidas</div>
             <h2 className="sec-h2 up">Perguntas <em>frequentes</em></h2>
-            <div className="faq-list" style={{ textAlign:'left' }}>
+            <div className="faq-list" style={{ textAlign: 'left' }}>
               {[
-                { q:'Precisa instalar algum aplicativo?', a:'Não! O app da Josi funciona direto no navegador do seu celular, tablet ou computador — é só entrar no site e usar. Simples assim.' },
-                { q:'Posso cancelar quando quiser?', a:'Sim! Sem multa, sem burocracia. Se cancelar, você continua com acesso premium até o final do mês já pago.' },
-                { q:'Com que frequência tem conteúdo novo?', a:'A Josi adiciona novidades toda semana — receitas, vídeos, tutoriais e muito mais. Sempre tem algo novo pra explorar.' },
-                { q:'A comunidade é aberta ou moderada?', a:'É moderada com carinho! A ideia é que seja um lugar seguro, acolhedor e sem julgamentos — igual à vibe da Josi.' },
-                { q:'O conteúdo gratuito vale a pena?', a:'Claro! Você já tem acesso à comunidade, ao perfil e ao conteúdo de entrada. O Premium desbloqueia os cursos, tutoriais completos e os exclusivos.' },
+                {
+                  q: 'Precisa instalar algum aplicativo?',
+                  a: 'Não! O app da Josi funciona direto no navegador do celular, tablet ou computador — é só entrar no site e usar. Simples assim.',
+                },
+                {
+                  q: 'Posso cancelar quando quiser?',
+                  a: 'Sim, sem multa e sem burocracia. Se cancelar, você continua com acesso Premium até o final do período já pago.',
+                },
+                {
+                  q: 'Com que frequência tem conteúdo novo?',
+                  a: 'A Josi adiciona novidades toda semana — receitas, tutoriais de skincare, vídeos da chácara e muito mais.',
+                },
+                {
+                  q: 'A comunidade é moderada?',
+                  a: 'Sim, com muito carinho. A ideia é que seja um espaço seguro, acolhedor e sem julgamentos — igualzinho à vibe da Josi.',
+                },
+                {
+                  q: 'O plano Gratuito vale a pena?',
+                  a: 'Com certeza! Você já tem acesso à comunidade e ao conteúdo de entrada. O Premium desbloqueia os cursos, tutoriais completos e os exclusivos.',
+                },
               ].map(({ q, a }) => (
                 <div key={q} className="fq up">
                   <button className="fq-btn" onClick={e => toggleFaq(e.currentTarget)}>
@@ -454,32 +752,30 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* CTA */}
+        {/* ── CTA ──────────────────────────────────────────────── */}
         <section className="cta-sec">
-          <div style={{ position:'relative', zIndex:1, maxWidth:600, margin:'0 auto' }}>
-            <div className="up" style={{ display:'flex', justifyContent:'center', marginBottom:24 }}>
-              <div style={{ width:52, height:52, borderRadius:'50%', background:'rgba(201,130,107,.2)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <Smile size={26} color="#D4A96A" strokeWidth={1.5} />
-              </div>
-            </div>
+          <div className="cta-inner">
             <h2 className="cta-h up">
-              Vem fazer parte<br/><em>da nossa comunidade</em>
+              Vem fazer parte<br /><em>da nossa história</em>
             </h2>
-            <p className="cta-callout up">
-              Cria sua conta agora e começa a explorar. É de graça, é gostoso e é do jeito que a Josi gosta — com carinho.
+            <p className="cta-sub up">
+              Cria sua conta agora e começa a explorar. É de graça, é gostoso e tem muito carinho — prometo.
             </p>
-            <div className="up">
-              <Link href="/auth/login" className="btn btn-white btn-lg">
-                Quero entrar agora
-                <ArrowRight size={16} strokeWidth={2.5} />
+            <div className="cta-btns up">
+              <Link href="/auth/login" className="btn btn-primary btn-lg">
+                Criar minha conta grátis
+                <ArrowRight size={16} strokeWidth={2} />
+              </Link>
+              <Link href="/auth/login" className="btn btn-ghost-light btn-lg">
+                Já tenho conta
               </Link>
             </div>
           </div>
         </section>
 
-        {/* FOOTER */}
+        {/* ── FOOTER ───────────────────────────────────────────── */}
         <footer className="footer">
-          <Logo />
+          <Logo light />
           <div className="footer-copy">© 2025 Josi App · Josiane Szewczuk Ferraz · Todos os direitos reservados</div>
           <div className="footer-links">
             <a href="#">Privacidade</a>
