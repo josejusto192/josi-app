@@ -120,51 +120,51 @@ export default function ProfileScreen() {
     <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(160deg,#2F4A3B,#2F4A3B)', padding: '20px 20px 28px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: -40, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(212,169,106,0.08)' }} />
-        <div style={{ position: 'absolute', bottom: -20, left: -10, width: 80, height: 80, borderRadius: '50%', background: 'rgba(47,74,59,0.1)' }} />
+      <div style={{ background: '#2F4A3B', padding: '22px 22px 26px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', right: -30, top: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(196,154,90,0.07)', pointerEvents: 'none' }} />
 
-        {/* Avatar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,#2F4A3B,#C49A5A)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.2)', flexShrink: 0 }}>
-            <span style={{ fontFamily: "'Cinzel',serif", fontSize: 26, fontWeight: 600, color: '#FAF7F2' }}>{initial}</span>
+        {/* Avatar + nome */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22, position: 'relative', zIndex: 1 }}>
+          <div style={{ width: 58, height: 58, borderRadius: '50%', background: 'rgba(250,247,242,0.12)', border: '2px solid rgba(196,154,90,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Cinzel',serif", fontSize: 24, fontWeight: 700, color: '#C49A5A' }}>{initial}</span>
           </div>
           <div style={{ flex: 1 }}>
             {editName ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                <input value={nameInput} onChange={e => setNameInput(e.target.value)}
-                  autoFocus
-                  style={{ background: 'rgba(253,248,243,0.15)', border: '1.5px solid rgba(253,248,243,0.3)', borderRadius: 10, padding: '6px 10px', fontSize: 16, color: '#FAF7F2', fontFamily: "'Lato',sans-serif", outline: 'none', flex: 1 }} />
+                <input value={nameInput} onChange={e => setNameInput(e.target.value)} autoFocus
+                  style={{ background: 'rgba(250,247,242,0.12)', border: '1.5px solid rgba(196,154,90,0.4)', borderRadius: 10, padding: '7px 12px', fontSize: 15, color: '#FAF7F2', fontFamily: "'Lato',sans-serif", outline: 'none', flex: 1 }} />
                 <button onClick={saveName} disabled={saving}
-                  style={{ background: '#2F4A3B', border: 'none', borderRadius: 8, padding: '6px 12px', color: '#FAF7F2', fontSize: 12, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
+                  style={{ background: '#C49A5A', border: 'none', borderRadius: 8, padding: '7px 14px', color: '#FAF7F2', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
                   {saving ? '…' : 'OK'}
                 </button>
               </div>
             ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 20, fontWeight: 600, color: '#FAF7F2' }}>
-                  {profile?.nome ?? 'Sem nome'}
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: '#FAF7F2' }}>
+                    {profile?.nome ?? 'Sem nome'}
+                  </div>
+                  <button onClick={() => setEditName(true)}
+                    style={{ background: 'transparent', border: '1px solid rgba(250,247,242,0.2)', borderRadius: 100, padding: '2px 10px', color: 'rgba(250,247,242,0.5)', fontSize: 11, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
+                    editar
+                  </button>
                 </div>
-                <button onClick={() => setEditName(true)}
-                  style={{ background: 'rgba(253,248,243,0.15)', border: 'none', borderRadius: 6, padding: '3px 8px', color: 'rgba(253,248,243,0.7)', fontSize: 11, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
-                  editar
-                </button>
+                <div style={{ fontSize: 12, color: 'rgba(250,247,242,0.40)', marginTop: 3 }}>{email}</div>
               </div>
             )}
-            <div style={{ fontSize: 12, color: 'rgba(253,248,243,0.55)', marginTop: 2 }}>{email}</div>
           </div>
         </div>
 
-        {/* Stats rápidos */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
+        {/* Stats */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 8, position: 'relative', zIndex: 1 }}>
           {[
-            { label: 'Dias feitos',  value: `${doneDays}/21`, color: '#C49A5A' },
-            { label: 'Streak',       value: `🔥 ${profile?.sequencia_atual ?? 0}`, color: '#FAF7F2' },
-            { label: 'IMC',          value: profile?.imc ?? '—', color: '#FAF7F2' },
+            { label: 'Dias feitos', value: `${doneDays}/21` },
+            { label: 'Dias seguidos', value: profile?.sequencia_atual ? `🔥 ${profile.sequencia_atual}` : '—' },
+            { label: 'IMC', value: profile?.imc ?? '—' },
           ].map(s => (
-            <div key={s.label} style={{ background: 'rgba(253,248,243,0.1)', borderRadius: 12, padding: '10px 12px', textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: s.color }}>{s.value}</div>
-              <div style={{ fontSize: 10, color: 'rgba(253,248,243,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>{s.label}</div>
+            <div key={s.label} style={{ background: 'rgba(250,247,242,0.08)', borderRadius: 12, padding: '10px 8px', textAlign: 'center' }}>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 17, fontWeight: 600, color: '#FAF7F2' }}>{s.value}</div>
+              <div style={{ fontSize: 10, color: 'rgba(250,247,242,0.40)', textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 3 }}>{s.label}</div>
             </div>
           ))}
         </div>

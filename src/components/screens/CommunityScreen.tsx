@@ -616,23 +616,23 @@ export default function CommunityScreen() {
 
   return (
     <div style={{ flex:1, overflowY:'auto', background:'#F3E9DC' }}>
-      {/* Header */}
-      <div style={{ background:'#FAF7F2', padding:'16px 20px 0', borderBottom:'1px solid #DDD5C5', position:'sticky', top:0, zIndex:10 }}>
-        <div style={{ fontFamily:"'Cinzel',serif", fontSize:22, fontWeight:600, color:'#2F4A3B', marginBottom:12 }}>
-          Comunidade
-        </div>
+      {/* Hero header */}
+      <div style={{ background:'#2F4A3B', padding:'22px 24px 20px', position:'sticky', top:0, zIndex:10, overflow:'hidden' }}>
+        <div style={{ position:'absolute', right:-30, top:-30, width:130, height:130, borderRadius:'50%', background:'rgba(196,154,90,0.07)', pointerEvents:'none' }} />
+        <div style={{ fontSize:11, color:'#C49A5A', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:600, marginBottom:4 }}>Sua tribo</div>
+        <div style={{ fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:600, color:'#FAF7F2' }}>Comunidade</div>
       </div>
 
       {/* Compose bar */}
-      <div style={{ padding:'14px 20px', background:'#FAF7F2', borderBottom:'1px solid #DDD5C5' }}>
+      <div style={{ padding:'12px 20px', background:'#FAF7F2', borderBottom:'1px solid #EBE0CF' }}>
         <div style={{ display:'flex', gap:10, alignItems:'center' }}>
           <Avatar name={me.nome} size={36} josi={me.is_admin} />
           <div onClick={() => setShowCreate(true)}
             style={{ flex:1, background:'#F3E9DC', borderRadius:100, padding:'10px 16px', fontSize:13, color:'#9DB09A', cursor:'pointer' }}>
-            Compartilhe seu progresso hoje... 🌿
+            Compartilhe seu progresso hoje...
           </div>
           <div onClick={() => setShowCreate(true)}
-            style={{ width:36, height:36, borderRadius:'50%', background:'#2F4A3B', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0, boxShadow:'0 4px 10px rgba(47,74,59,0.35)' }}>
+            style={{ width:36, height:36, borderRadius:'50%', background:'#2F4A3B', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0 }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>

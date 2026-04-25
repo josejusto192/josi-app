@@ -90,57 +90,91 @@ export default function EducationScreen() {
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
-      <div style={{ background: '#FAF7F2', padding: '16px 20px 16px', borderBottom: '1px solid #DDD5C5' }}>
-        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#2F4A3B' }}>Educação</div>
-        <div style={{ fontSize: 13, color: '#6B7F63', marginTop: 2 }}>Cursos, módulos e aulas exclusivas</div>
+      {/* Hero banner */}
+      <div style={{ background: '#2F4A3B', padding: '22px 24px 26px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', right: -30, bottom: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(196,154,90,0.07)', pointerEvents: 'none' }} />
+        <div style={{ fontSize: 11, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Conteúdo exclusivo</div>
+        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4 }}>Educação</div>
+        <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)' }}>Cursos e aulas para a sua jornada</div>
       </div>
 
-      <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 14 }}>
+      <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 48, color: '#6B7F63', fontSize: 13 }}>Carregando cursos…</div>
+          <div style={{ textAlign: 'center', padding: 48, color: '#9DB09A', fontSize: 13 }}>Carregando cursos…</div>
         ) : courses.length === 0 ? (
           <div style={{ textAlign: 'center', padding: 48 }}>
-            <div style={{ fontSize: 36, marginBottom: 12 }}>📚</div>
             <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, color: '#2F4A3B' }}>Nenhum curso disponível</div>
+            <div style={{ fontSize: 13, color: '#9DB09A', marginTop: 6 }}>Em breve novos conteúdos</div>
           </div>
         ) : courses.map(course => {
           const pct = course.totalLessons ? Math.round(((course.completedLessons ?? 0) / course.totalLessons) * 100) : 0
           const done = pct === 100
-          const grad = CAT_GRADIENT[course.categoria] ?? CAT_GRADIENT.nutricao
+          const CAT_SOLID: Record<string, string> = {
+            nutricao: '#2F4A3B', mentalidade: '#4A5A3B', receitas: '#5A4A2A',
+            treino: '#2A3A5A', saude: '#4A3A2A', beleza: '#4A2A3A',
+          }
+          const bg = CAT_SOLID[course.categoria] ?? '#2F4A3B'
           const totalMin = (course.modules ?? []).flatMap(m => m.lessons ?? []).reduce((s, l) => s + (l.duracao_min ?? 0), 0)
-          const h = Math.floor(totalMin / 60), m = totalMin % 60
-          const durStr = h > 0 ? `${h}h${m > 0 ? m + 'min' : ''}` : `${m}min`
+          const h = Math.floor(totalMin / 60), min = totalMin % 60
+          const durStr = totalMin > 0 ? (h > 0 ? `${h}h${min > 0 ? min + 'min' : ''}` : `${min}min`) : ''
 
           return (
             <div key={course.id} onClick={() => setSelectedCourse(course)}
-              style={{ background: '#FAF7F2', borderRadius: 20, overflow: 'hidden', boxShadow: '0 4px 16px rgba(47,74,59,0.10)', cursor: 'pointer', border: done ? '2px solid #6B7F63' : '2px solid transparent' }}>
-              <div style={{ background: grad, padding: '20px 18px 22px', position: 'relative' }}>
-                {course.is_premium && (
-                  <div style={{ position: 'absolute', top: 12, right: 12, background: 'rgba(0,0,0,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 10, fontWeight: 700, color: '#FAF7F2' }}>✦ PREMIUM</div>
-                )}
-                {done && (
-                  <div style={{ position: 'absolute', top: 12, left: 12, background: 'rgba(138,158,123,0.9)', borderRadius: 100, padding: '3px 10px', fontSize: 10, fontWeight: 700, color: '#FAF7F2' }}>✓ Concluído</div>
-                )}
-                <div style={{ fontSize: 34, marginBottom: 8 }}>{CAT_EMOJI[course.categoria]}</div>
-                <div style={{ fontSize: 9, color: 'rgba(253,248,243,0.75)', letterSpacing: '0.09em', textTransform: 'uppercase', marginBottom: 4 }}>{CAT_LABEL[course.categoria]}</div>
-                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: '#FAF7F2', lineHeight: 1.25 }}>{course.titulo}</div>
+              style={{ background: '#FAF7F2', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 12px rgba(47,74,59,0.08)', cursor: 'pointer', border: done ? '1.5px solid #6B7F63' : '1.5px solid transparent' }}>
+
+              {/* Banner */}
+              <div style={{ background: bg, padding: '18px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+                <div style={{ position: 'absolute', right: -20, bottom: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(196,154,90,0.10)' }} />
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+                  <div>
+                    <div style={{ fontSize: 9, color: 'rgba(250,247,242,0.55)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
+                      {CAT_LABEL[course.categoria]}
+                    </div>
+                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 17, fontWeight: 600, color: '#FAF7F2', lineHeight: 1.25, maxWidth: '80%' }}>
+                      {course.titulo}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                    {course.is_premium && (
+                      <div style={{ background: 'rgba(196,154,90,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 9, fontWeight: 700, color: '#C49A5A', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>✦ PREMIUM</div>
+                    )}
+                    {done && (
+                      <div style={{ background: 'rgba(250,247,242,0.15)', borderRadius: 100, padding: '3px 10px', fontSize: 9, fontWeight: 700, color: '#FAF7F2', whiteSpace: 'nowrap' }}>✓ Concluído</div>
+                    )}
+                  </div>
+                </div>
               </div>
-              <div style={{ padding: '14px 16px' }}>
+
+              {/* Info row */}
+              <div style={{ padding: '12px 18px 14px' }}>
                 {course.descricao && (
                   <div style={{ fontSize: 12, color: '#6B7F63', lineHeight: 1.55, marginBottom: 10 }}>
-                    {course.descricao.length > 100 ? course.descricao.slice(0, 100) + '…' : course.descricao}
+                    {course.descricao.length > 90 ? course.descricao.slice(0, 90) + '…' : course.descricao}
                   </div>
                 )}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: pct > 0 ? 8 : 0 }}>
-                  <span style={{ fontSize: 12, color: '#6B7F63' }}>{course.totalLessons} aulas · {durStr} · {(course.modules ?? []).length} módulos</span>
-                  {pct > 0 && <span style={{ fontSize: 12, fontWeight: 600, color: done ? '#6B7F63' : '#2F4A3B' }}>{pct}%</span>}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                    {course.totalLessons ? (
+                      <span style={{ fontSize: 11, color: '#9DB09A' }}>{course.totalLessons} aulas</span>
+                    ) : null}
+                    {durStr && <span style={{ fontSize: 11, color: '#9DB09A' }}>· {durStr}</span>}
+                    {(course.modules ?? []).length > 0 && (
+                      <span style={{ fontSize: 11, color: '#9DB09A' }}>· {(course.modules ?? []).length} módulos</span>
+                    )}
+                  </div>
+                  {pct > 0 && (
+                    <span style={{ fontSize: 12, fontWeight: 700, color: done ? '#6B7F63' : '#C49A5A' }}>{pct}%</span>
+                  )}
                 </div>
                 {pct > 0 ? (
-                  <div style={{ height: 4, background: '#D4E3D8', borderRadius: 3 }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: grad, borderRadius: 3 }} />
+                  <div style={{ height: 3, background: '#EBE0CF', borderRadius: 100, marginTop: 8 }}>
+                    <div style={{ width: `${pct}%`, height: '100%', background: done ? '#6B7F63' : '#C49A5A', borderRadius: 100, transition: 'width 600ms ease' }} />
                   </div>
                 ) : (
-                  <div style={{ fontSize: 12, fontWeight: 600, color: '#2F4A3B', marginTop: 4 }}>Começar curso →</div>
+                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#2F4A3B' }}>Começar</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C49A5A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                  </div>
                 )}
               </div>
             </div>
