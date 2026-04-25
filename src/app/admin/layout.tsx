@@ -35,9 +35,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             <Image
               src="/logo-viverbem.svg"
               alt="Viver Bem"
-              width={110}
-              height={104}
-              style={{ height: 32, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', opacity: 0.92 }}
+              width={160}
+              height={152}
+              style={{ height: 52, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', opacity: 0.92 }}
             />
           </div>
           <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.10em', textTransform: 'uppercase', fontWeight: 600 }}>Painel Admin</div>
