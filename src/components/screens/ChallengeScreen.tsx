@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import DayDetail from '@/components/DayDetail'
 
@@ -17,7 +17,7 @@ const HABITS_CONFIG: { id: keyof Habits; label: string; sub: string }[] = [
 ]
 
 // SVG icon for each habit
-const HABIT_ICONS: Record<string, JSX.Element> = {
+const HABIT_ICONS: Record<string, ReactNode> = {
   agua: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
