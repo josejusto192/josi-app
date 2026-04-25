@@ -33,11 +33,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div style={{ padding: '20px 20px 18px', borderBottom: '1px solid rgba(250,247,242,0.12)' }}>
           <div style={{ marginBottom: 10 }}>
             <Image
-              src="/logo-viverbem.svg"
+              src="/logo-viverbem-light.svg"
               alt="Viver Bem"
               width={160}
               height={152}
-              style={{ height: 52, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', opacity: 0.92 }}
+              style={{ height: 52, width: 'auto' }}
             />
           </div>
           <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.10em', textTransform: 'uppercase', fontWeight: 600 }}>Painel Admin</div>

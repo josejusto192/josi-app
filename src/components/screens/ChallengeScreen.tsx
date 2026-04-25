@@ -124,7 +124,7 @@ export default function ChallengeScreen() {
 
         {/* Logo + avatar row */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, position: 'relative', zIndex: 1 }}>
-          <Image src="/logo-viverbem.svg" alt="Viver Bem" width={90} height={85} style={{ height: 28, width: 'auto', filter: 'brightness(0) invert(1)', opacity: 0.95 }} priority />
+          <Image src="/logo-viverbem-light.svg" alt="Viver Bem" width={160} height={152} style={{ height: 46, width: 'auto' }} priority />
           <Link href="/perfil" style={{ textDecoration: 'none' }}>
             <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(250,247,242,0.12)', border: '1.5px solid rgba(196,154,90,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <span style={{ fontFamily: "'Cinzel',serif", fontSize: 13, fontWeight: 700, color: '#C49A5A' }}>
