@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 
 const NAV = [
   { href: '/admin/dashboard',  label: 'Dashboard',   icon: '▦' },
@@ -29,20 +30,18 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <aside style={{ width: 220, background: '#2F4A3B', display: 'flex', flexDirection: 'column', flexShrink: 0, position: 'sticky', top: 0, height: '100vh' }}>
 
         {/* Logo */}
-        <div style={{ padding: '24px 20px 20px', borderBottom: '1px solid rgba(250,247,242,0.12)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <svg width="20" height="20" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="40" cy="40" r="38" fill="rgba(250,247,242,0.12)"/>
-              <path d="M40 18 L40 62" stroke="#C49A5A" strokeWidth="3" strokeLinecap="round"/>
-              <path d="M28 26 L40 18 L52 26" stroke="#C49A5A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M24 40 L56 40" stroke="#C49A5A" strokeWidth="2" strokeLinecap="round" opacity="0.6"/>
-            </svg>
-            <div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: 13, fontWeight: 600, color: '#FAF7F2', letterSpacing: '0.06em' }}>VIVER BEM</div>
-              <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.08em', textTransform: 'uppercase' }}>Admin</div>
-            </div>
+        <div style={{ padding: '20px 20px 18px', borderBottom: '1px solid rgba(250,247,242,0.12)' }}>
+          <div style={{ marginBottom: 10 }}>
+            <Image
+              src="/logo-viverbem.svg"
+              alt="Viver Bem"
+              width={110}
+              height={104}
+              style={{ height: 32, width: 'auto', filter: 'brightness(0) invert(1) sepia(1) saturate(2) hue-rotate(5deg)', opacity: 0.92 }}
+            />
           </div>
-          <div style={{ fontSize: 11, color: 'rgba(250,247,242,0.45)', marginTop: 6 }}>{profile?.nome ?? 'Administrador'}</div>
+          <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.10em', textTransform: 'uppercase', fontWeight: 600 }}>Painel Admin</div>
+          <div style={{ fontSize: 11, color: 'rgba(250,247,242,0.40)', marginTop: 4 }}>{profile?.nome ?? 'Administrador'}</div>
         </div>
 
         {/* Nav */}
