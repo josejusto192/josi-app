@@ -91,11 +91,16 @@ export default function EducationScreen() {
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
       {/* Hero banner */}
-      <div style={{ background: '#2F4A3B', padding: '22px 24px 26px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: '#2F4A3B', padding: '20px 22px 24px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -30, bottom: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(196,154,90,0.07)', pointerEvents: 'none' }} />
-        <div style={{ fontSize: 11, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600, marginBottom: 6 }}>Conteúdo exclusivo</div>
-        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4 }}>Educação</div>
-        <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)' }}>Cursos e aulas para a sua jornada</div>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
+          <div style={{ fontSize: 11, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Conteúdo exclusivo</div>
+          <a href="/perfil" style={{ textDecoration: 'none', width: 30, height: 30, borderRadius: '50%', background: 'rgba(250,247,242,0.10)', border: '1px solid rgba(196,154,90,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,90,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </a>
+        </div>
+        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4, position: 'relative', zIndex: 1 }}>Educação</div>
+        <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)', position: 'relative', zIndex: 1 }}>Cursos e aulas para a sua jornada</div>
       </div>
 
       <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>

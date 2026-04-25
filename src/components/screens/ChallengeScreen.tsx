@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback, ReactNode } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Link from 'next/link'
+import Image from 'next/image'
 import DayDetail from '@/components/DayDetail'
 
 type Profile = { id: string; nome: string | null; peso_inicial: number | null; objetivo: string | null; sequencia_atual: number }
@@ -117,9 +119,20 @@ export default function ChallengeScreen() {
     <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
-      <div style={{ background: '#2F4A3B', padding: '24px 24px 28px', position: 'relative', overflow: 'hidden' }}>
-        {/* Subtle background circle */}
+      <div style={{ background: '#2F4A3B', padding: '20px 22px 28px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -50, top: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(196,154,90,0.06)', pointerEvents: 'none' }} />
+
+        {/* Logo + avatar row */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, position: 'relative', zIndex: 1 }}>
+          <Image src="/logo-viverbem.svg" alt="Viver Bem" width={90} height={85} style={{ height: 26, width: 'auto', opacity: 0.92 }} priority />
+          <Link href="/perfil" style={{ textDecoration: 'none' }}>
+            <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'rgba(250,247,242,0.12)', border: '1.5px solid rgba(196,154,90,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'Cinzel',serif", fontSize: 13, fontWeight: 700, color: '#C49A5A' }}>
+                {firstName ? firstName[0].toUpperCase() : '?'}
+              </span>
+            </div>
+          </Link>
+        </div>
 
         {/* Greeting */}
         {firstName && (

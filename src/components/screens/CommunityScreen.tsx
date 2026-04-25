@@ -617,10 +617,15 @@ export default function CommunityScreen() {
   return (
     <div style={{ flex:1, overflowY:'auto', background:'#F3E9DC' }}>
       {/* Hero header */}
-      <div style={{ background:'#2F4A3B', padding:'22px 24px 20px', position:'sticky', top:0, zIndex:10, overflow:'hidden' }}>
+      <div style={{ background:'#2F4A3B', padding:'20px 22px 18px', position:'sticky', top:0, zIndex:10, overflow:'hidden' }}>
         <div style={{ position:'absolute', right:-30, top:-30, width:130, height:130, borderRadius:'50%', background:'rgba(196,154,90,0.07)', pointerEvents:'none' }} />
-        <div style={{ fontSize:11, color:'#C49A5A', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:600, marginBottom:4 }}>Sua tribo</div>
-        <div style={{ fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:600, color:'#FAF7F2' }}>Comunidade</div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10, position:'relative', zIndex:1 }}>
+          <div style={{ fontSize:11, color:'#C49A5A', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:600 }}>Sua tribo</div>
+          <a href="/perfil" style={{ textDecoration:'none', width:30, height:30, borderRadius:'50%', background:'rgba(250,247,242,0.10)', border:'1px solid rgba(196,154,90,0.35)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,90,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </a>
+        </div>
+        <div style={{ fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:600, color:'#FAF7F2', position:'relative', zIndex:1 }}>Comunidade</div>
       </div>
 
       {/* Compose bar */}
