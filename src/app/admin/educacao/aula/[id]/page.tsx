@@ -22,8 +22,8 @@ function AulaForm({ id: paramId }: { id: string }) {
   const [saved, setSaved]     = useState(false)
   const [form, setForm]       = useState<Form>(EMPTY)
 
-  const inp: React.CSSProperties = { width:'100%', background:'#F5EDE3', border:'1.5px solid #E8D8CC', borderRadius:12, padding:'11px 14px', fontSize:14, color:'#4A2E22', fontFamily:"'DM Sans',sans-serif", outline:'none', boxSizing:'border-box' }
-  const lbl: React.CSSProperties = { fontSize:11, fontWeight:600, color:'#8A6A5A', display:'block', marginBottom:6, letterSpacing:'0.06em', textTransform:'uppercase' }
+  const inp: React.CSSProperties = { width:'100%', background:'#F3E9DC', border:'1.5px solid #DDD5C5', borderRadius:12, padding:'11px 14px', fontSize:14, color:'#2F4A3B', fontFamily:"'Lato',sans-serif", outline:'none', boxSizing:'border-box' }
+  const lbl: React.CSSProperties = { fontSize:11, fontWeight:600, color:'#6B7F63', display:'block', marginBottom:6, letterSpacing:'0.06em', textTransform:'uppercase' }
 
   useEffect(() => {
     const init = async () => {
@@ -70,22 +70,22 @@ function AulaForm({ id: paramId }: { id: string }) {
     router.push(`/admin/educacao/modulo/${modId}`)
   }
 
-  if (loading) return <div style={{ color:'#8A6A5A', padding:20 }}>Carregando…</div>
+  if (loading) return <div style={{ color:'#6B7F63', padding:20 }}>Carregando…</div>
 
   return (
     <div style={{ maxWidth:640 }}>
       <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:24 }}>
         <button onClick={() => modId ? router.push(`/admin/educacao/modulo/${modId}`) : router.push('/admin/educacao')}
-          style={{ background:'#F0D5C8', border:'none', borderRadius:'50%', width:36, height:36, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9826B" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          style={{ background:'#D4E3D8', border:'none', borderRadius:'50%', width:36, height:36, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:22, fontWeight:600, color:'#4A2E22' }}>{isNew ? 'Nova aula' : 'Editar aula'}</div>
-          <div style={{ fontSize:12, color:'#8A6A5A' }}>{isNew ? 'Preencha os dados abaixo' : form.titulo}</div>
+          <div style={{ fontFamily:"'Cinzel',serif", fontSize:22, fontWeight:600, color:'#2F4A3B' }}>{isNew ? 'Nova aula' : 'Editar aula'}</div>
+          <div style={{ fontSize:12, color:'#6B7F63' }}>{isNew ? 'Preencha os dados abaixo' : form.titulo}</div>
         </div>
       </div>
 
-      <div style={{ background:'#FDF8F3', borderRadius:20, padding:28, boxShadow:'0 4px 20px rgba(74,46,34,0.10)' }}>
+      <div style={{ background:'#FAF7F2', borderRadius:20, padding:28, boxShadow:'0 4px 20px rgba(47,74,59,0.10)' }}>
         <div style={{ marginBottom:18 }}>
           <label style={lbl}>Título da aula *</label>
           <input value={form.titulo} onChange={set('titulo')} placeholder="ex: Por que dietas restritivas não funcionam" style={inp} />
@@ -135,31 +135,31 @@ function AulaForm({ id: paramId }: { id: string }) {
             ) : (
               <textarea value={form.conteudo} onChange={set('conteudo')} rows={12}
                 placeholder={form.tipo === 'markdown' ? '# Título\n\nEscreva em markdown...' : 'Escreva o conteúdo da aula...'}
-                style={{ ...inp, resize:'vertical', fontFamily: form.tipo === 'markdown' ? 'monospace' : "'DM Sans',sans-serif", fontSize:13 }} />
+                style={{ ...inp, resize:'vertical', fontFamily: form.tipo === 'markdown' ? 'monospace' : "'Lato',sans-serif", fontSize:13 }} />
             )}
-            {form.tipo === 'markdown' && <div style={{ fontSize:11, color:'#B89B8C', marginTop:4 }}>Suporta: # títulos, **negrito**, *itálico*, - listas, {'>'} citação, ```código```, tabelas com |</div>}
+            {form.tipo === 'markdown' && <div style={{ fontSize:11, color:'#9DB09A', marginTop:4 }}>Suporta: # títulos, **negrito**, *itálico*, - listas, {'>'} citação, ```código```, tabelas com |</div>}
           </div>
         )}
 
         <div style={{ display:'flex', gap:16, marginBottom:24 }}>
           {[
-            { key:'is_published', label:'Publicada', hint:'visível no app', color:'#8A9E7B' },
-            { key:'is_premium', label:'Premium', hint:'apenas assinantes', color:'#D4A96A' },
+            { key:'is_published', label:'Publicada', hint:'visível no app', color:'#6B7F63' },
+            { key:'is_premium', label:'Premium', hint:'apenas assinantes', color:'#C49A5A' },
           ].map(f => (
-            <div key={f.key} style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'#F5EDE3', borderRadius:12, flex:1 }}>
+            <div key={f.key} style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', background:'#F3E9DC', borderRadius:12, flex:1 }}>
               <input type="checkbox" id={f.key} checked={form[f.key as keyof Form] as boolean} onChange={set(f.key as keyof Form)} style={{ width:16, height:16, cursor:'pointer', accentColor: f.color }} />
-              <label htmlFor={f.key} style={{ fontSize:14, color:'#4A2E22', cursor:'pointer' }}>{f.label} <span style={{ fontSize:11, color:'#8A6A5A' }}>({f.hint})</span></label>
+              <label htmlFor={f.key} style={{ fontSize:14, color:'#2F4A3B', cursor:'pointer' }}>{f.label} <span style={{ fontSize:11, color:'#6B7F63' }}>({f.hint})</span></label>
             </div>
           ))}
         </div>
 
         <div style={{ display:'flex', gap:10 }}>
           <button onClick={save} disabled={saving || !form.titulo.trim()}
-            style={{ flex:1, border:'none', borderRadius:100, padding:'13px', fontSize:15, fontWeight:600, fontFamily:"'DM Sans',sans-serif", cursor:'pointer', background: saved?'#8A9E7B':saving?'#D4A96A':'#C9826B', color:'#FDF8F3', transition:'background 200ms' }}>
+            style={{ flex:1, border:'none', borderRadius:100, padding:'13px', fontSize:15, fontWeight:600, fontFamily:"'Lato',sans-serif", cursor:'pointer', background: saved?'#6B7F63':saving?'#C49A5A':'#2F4A3B', color:'#FAF7F2', transition:'background 200ms' }}>
             {saved ? '✓ Salvo!' : saving ? 'Salvando…' : isNew ? 'Criar aula' : 'Salvar alterações'}
           </button>
           {!isNew && (
-            <button onClick={del} style={{ background:'#F0D5C8', border:'none', borderRadius:100, padding:'13px 18px', fontSize:14, fontWeight:600, fontFamily:"'DM Sans',sans-serif", cursor:'pointer', color:'#A06858' }}>🗑</button>
+            <button onClick={del} style={{ background:'#D4E3D8', border:'none', borderRadius:100, padding:'13px 18px', fontSize:14, fontWeight:600, fontFamily:"'Lato',sans-serif", cursor:'pointer', color:'#A06858' }}>🗑</button>
           )}
         </div>
       </div>
@@ -170,7 +170,7 @@ function AulaForm({ id: paramId }: { id: string }) {
 export default function EditAulaPage({ params }: { params: Promise<{ id: string }> }) {
   const [id, setId] = useState('')
   useEffect(() => { params.then(p => setId(p.id)) }, [])
-  if (!id) return <div style={{ color:'#8A6A5A', padding:20 }}>Carregando…</div>
+  if (!id) return <div style={{ color:'#6B7F63', padding:20 }}>Carregando…</div>
   return <Suspense><AulaForm id={id} /></Suspense>
 }
 export const dynamic = 'force-dynamic'

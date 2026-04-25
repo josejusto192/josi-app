@@ -20,24 +20,24 @@ export default async function AdminEducacaoPage() {
     <div>
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28 }}>
         <div>
-          <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:600, color:'#4A2E22', margin:'0 0 4px' }}>Educação</h1>
-          <p style={{ color:'#8A6A5A', fontSize:14, margin:0 }}>Cursos, módulos e aulas</p>
+          <h1 style={{ fontFamily:"'Cinzel',serif", fontSize:28, fontWeight:600, color:'#2F4A3B', margin:'0 0 4px' }}>Educação</h1>
+          <p style={{ color:'#6B7F63', fontSize:14, margin:0 }}>Cursos, módulos e aulas</p>
         </div>
         <Link href="/admin/educacao/curso/novo" style={{ textDecoration:'none' }}>
-          <div style={{ background:'#C9826B', borderRadius:100, padding:'10px 20px', color:'#FDF8F3', fontSize:14, fontWeight:600, cursor:'pointer' }}>+ Novo curso</div>
+          <div style={{ background:'#2F4A3B', borderRadius:100, padding:'10px 20px', color:'#FAF7F2', fontSize:14, fontWeight:600, cursor:'pointer' }}>+ Novo curso</div>
         </Link>
       </div>
 
       {/* Stats */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:28 }}>
         {[
-          { label:'Cursos', value: enriched.length, color:'#C9826B' },
-          { label:'Módulos', value: enriched.reduce((s,c) => s+(c as {moduleCount:number}).moduleCount,0), color:'#8A9E7B' },
-          { label:'Aulas',   value: enriched.reduce((s,c) => s+(c as {lessonCount:number}).lessonCount,0), color:'#D4A96A' },
+          { label:'Cursos', value: enriched.length, color:'#2F4A3B' },
+          { label:'Módulos', value: enriched.reduce((s,c) => s+(c as {moduleCount:number}).moduleCount,0), color:'#6B7F63' },
+          { label:'Aulas',   value: enriched.reduce((s,c) => s+(c as {lessonCount:number}).lessonCount,0), color:'#C49A5A' },
         ].map(s => (
-          <div key={s.label} style={{ background:'#FDF8F3', borderRadius:16, padding:'16px 18px', boxShadow:'0 2px 8px rgba(74,46,34,0.08)' }}>
-            <div style={{ fontSize:11, color:'#8A6A5A', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:6 }}>{s.label}</div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:28, fontWeight:600, color:s.color }}>{s.value}</div>
+          <div key={s.label} style={{ background:'#FAF7F2', borderRadius:16, padding:'16px 18px', boxShadow:'0 2px 8px rgba(47,74,59,0.08)' }}>
+            <div style={{ fontSize:11, color:'#6B7F63', letterSpacing:'0.06em', textTransform:'uppercase', marginBottom:6 }}>{s.label}</div>
+            <div style={{ fontFamily:"'Cinzel',serif", fontSize:28, fontWeight:600, color:s.color }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -48,28 +48,28 @@ export default async function AdminEducacaoPage() {
           const course = c as { id:string; titulo:string; categoria:string; is_premium:boolean; is_published:boolean; moduleCount:number; lessonCount:number }
           return (
             <Link key={course.id} href={`/admin/educacao/curso/${course.id}`} style={{ textDecoration:'none' }}>
-              <div style={{ background:'#FDF8F3', borderRadius:16, padding:'16px 20px', boxShadow:'0 2px 8px rgba(74,46,34,0.08)', display:'flex', alignItems:'center', gap:14, cursor:'pointer', opacity: course.is_published ? 1 : 0.6 }}>
-                <div style={{ width:44, height:44, borderRadius:12, background:'#F0D5C8', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
+              <div style={{ background:'#FAF7F2', borderRadius:16, padding:'16px 20px', boxShadow:'0 2px 8px rgba(47,74,59,0.08)', display:'flex', alignItems:'center', gap:14, cursor:'pointer', opacity: course.is_published ? 1 : 0.6 }}>
+                <div style={{ width:44, height:44, borderRadius:12, background:'#D4E3D8', display:'flex', alignItems:'center', justifyContent:'center', fontSize:20, flexShrink:0 }}>
                   {CAT_EMOJI[course.categoria] ?? '📚'}
                 </div>
                 <div style={{ flex:1 }}>
                   <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-                    <div style={{ fontSize:15, fontWeight:600, color:'#4A2E22' }}>{course.titulo}</div>
+                    <div style={{ fontSize:15, fontWeight:600, color:'#2F4A3B' }}>{course.titulo}</div>
                     {course.is_premium && <span style={{ fontSize:9, fontWeight:700, color:'#7A5020', background:'#F5E6CE', padding:'2px 7px', borderRadius:100 }}>PREMIUM</span>}
-                    {!course.is_published && <span style={{ fontSize:9, fontWeight:700, color:'#8A6A5A', background:'#F0E4DC', padding:'2px 7px', borderRadius:100 }}>RASCUNHO</span>}
+                    {!course.is_published && <span style={{ fontSize:9, fontWeight:700, color:'#6B7F63', background:'#F0E4DC', padding:'2px 7px', borderRadius:100 }}>RASCUNHO</span>}
                   </div>
-                  <div style={{ fontSize:12, color:'#8A6A5A' }}>{course.moduleCount} módulos · {course.lessonCount} aulas</div>
+                  <div style={{ fontSize:12, color:'#6B7F63' }}>{course.moduleCount} módulos · {course.lessonCount} aulas</div>
                 </div>
-                <div style={{ fontSize:12, color:'#C9826B' }}>Editar →</div>
+                <div style={{ fontSize:12, color:'#2F4A3B' }}>Editar →</div>
               </div>
             </Link>
           )
         })}
         {enriched.length === 0 && (
-          <div style={{ textAlign:'center', padding:'48px 20px', background:'#FDF8F3', borderRadius:18, boxShadow:'0 2px 8px rgba(74,46,34,0.08)' }}>
+          <div style={{ textAlign:'center', padding:'48px 20px', background:'#FAF7F2', borderRadius:18, boxShadow:'0 2px 8px rgba(47,74,59,0.08)' }}>
             <div style={{ fontSize:32, marginBottom:12 }}>📚</div>
-            <div style={{ fontFamily:"'Playfair Display',serif", fontSize:16, color:'#4A2E22', marginBottom:8 }}>Nenhum curso ainda</div>
-            <Link href="/admin/educacao/curso/novo" style={{ textDecoration:'none', background:'#C9826B', borderRadius:100, padding:'10px 24px', color:'#FDF8F3', fontSize:14, fontWeight:600, display:'inline-block' }}>
+            <div style={{ fontFamily:"'Cinzel',serif", fontSize:16, color:'#2F4A3B', marginBottom:8 }}>Nenhum curso ainda</div>
+            <Link href="/admin/educacao/curso/novo" style={{ textDecoration:'none', background:'#2F4A3B', borderRadius:100, padding:'10px 24px', color:'#FAF7F2', fontSize:14, fontWeight:600, display:'inline-block' }}>
               + Criar primeiro curso
             </Link>
           </div>

@@ -9,18 +9,18 @@ import { useRouter } from 'next/navigation'
 type Mode = 'login' | 'signup' | 'forgot'
 
 const inp = (focused: boolean): React.CSSProperties => ({
-  width: '100%', border: `1.5px solid ${focused ? '#C9826B' : '#E8D8CC'}`,
-  borderRadius: 14, padding: '13px 16px', fontSize: 15, color: '#4A2E22',
-  fontFamily: "'DM Sans', sans-serif", outline: 'none', background: '#F5EDE3',
+  width: '100%', border: `1.5px solid ${focused ? '#2F4A3B' : '#DDD5C5'}`,
+  borderRadius: 14, padding: '13px 16px', fontSize: 15, color: '#2F4A3B',
+  fontFamily: "'Lato', sans-serif", outline: 'none', background: '#F3E9DC',
   transition: 'border-color 150ms', boxSizing: 'border-box',
 })
 
 const btn = (disabled: boolean): React.CSSProperties => ({
-  background: disabled ? '#E8D8CC' : 'linear-gradient(135deg,#C9826B,#D4A96A)',
-  color: disabled ? '#B89B8C' : '#FDF8F3', border: 'none', borderRadius: 100,
-  padding: '15px', fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans', sans-serif",
+  background: disabled ? '#DDD5C5' : 'linear-gradient(135deg,#2F4A3B,#C49A5A)',
+  color: disabled ? '#9DB09A' : '#FAF7F2', border: 'none', borderRadius: 100,
+  padding: '15px', fontSize: 15, fontWeight: 600, fontFamily: "'Lato', sans-serif",
   cursor: disabled ? 'default' : 'pointer', transition: 'all 200ms', width: '100%',
-  boxShadow: disabled ? 'none' : '0 4px 16px rgba(201,130,107,0.35)',
+  boxShadow: disabled ? 'none' : '0 4px 16px rgba(47,74,59,0.35)',
 })
 
 function Field({ label, type, value, onChange, placeholder, hint }: {
@@ -32,7 +32,7 @@ function Field({ label, type, value, onChange, placeholder, hint }: {
   const isPass = type === 'password'
   return (
     <div>
-      <label style={{ fontSize: 12, fontWeight: 500, color: '#8A6A5A', display: 'block', marginBottom: 6 }}>{label}</label>
+      <label style={{ fontSize: 12, fontWeight: 500, color: '#6B7F63', display: 'block', marginBottom: 6 }}>{label}</label>
       <div style={{ position: 'relative' }}>
         <input
           type={isPass && show ? 'text' : type}
@@ -42,12 +42,12 @@ function Field({ label, type, value, onChange, placeholder, hint }: {
         />
         {isPass && (
           <button type="button" onClick={() => setShow(s => !s)}
-            style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#8A6A5A', padding: 0 }}>
+            style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: 13, color: '#6B7F63', padding: 0 }}>
             {show ? 'ocultar' : 'ver'}
           </button>
         )}
       </div>
-      {hint && <div style={{ fontSize: 11, color: '#B89B8C', marginTop: 4 }}>{hint}</div>}
+      {hint && <div style={{ fontSize: 11, color: '#9DB09A', marginTop: 4 }}>{hint}</div>}
     </div>
   )
 }
@@ -125,11 +125,17 @@ export default function AuthPage() {
 
   const logoBlock = (
     <div style={{ textAlign: 'center', marginBottom: 36 }}>
-      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 68, height: 68, borderRadius: 20, background: 'linear-gradient(135deg,#C9826B,#D4A96A)', boxShadow: '0 8px 24px rgba(201,130,107,0.40)', marginBottom: 14 }}>
-        <span style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: 'italic', fontSize: 44, color: '#FDF8F3', lineHeight: 1 }}>J</span>
+      <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: 72, height: 72, borderRadius: 22, background: 'linear-gradient(135deg,#2F4A3B,#1A2B20)', boxShadow: '0 8px 24px rgba(47,74,59,0.40)', marginBottom: 16 }}>
+        <svg width="40" height="40" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M40 10 L40 70" stroke="#C49A5A" strokeWidth="3.5" strokeLinecap="round"/>
+          <path d="M24 22 L40 10 L56 22" stroke="#C49A5A" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M20 42 L60 42" stroke="#C49A5A" strokeWidth="2.5" strokeLinecap="round" opacity="0.7"/>
+          <path d="M26 56 L54 56" stroke="#C49A5A" strokeWidth="2" strokeLinecap="round" opacity="0.45"/>
+          <circle cx="40" cy="10" r="3.5" fill="#C49A5A"/>
+        </svg>
       </div>
-      <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 26, fontWeight: 600, color: '#4A2E22', marginBottom: 4 }}>Josi App</div>
-      <div style={{ fontFamily: "'Cormorant Garamond', Georgia, serif", fontStyle: 'italic', fontSize: 15, color: '#8A6A5A' }}>Desafio 21 Dias</div>
+      <div style={{ fontFamily: "'Cinzel', Georgia, serif", fontSize: 22, fontWeight: 700, color: '#2F4A3B', letterSpacing: '0.10em', marginBottom: 4 }}>VIVER BEM</div>
+      <div style={{ fontFamily: "'Lato', sans-serif", fontSize: 13, color: '#9DB09A', letterSpacing: '0.04em' }}>by Josiane Szewczuk</div>
     </div>
   )
 
@@ -141,19 +147,19 @@ export default function AuthPage() {
   )
 
   return (
-    <div style={{ minHeight: '100dvh', background: '#F5EDE3', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+    <div style={{ minHeight: '100dvh', background: '#F3E9DC', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', fontFamily: "'Lato', system-ui, sans-serif" }}>
       <div style={{ width: '100%', maxWidth: 380 }}>
         {logoBlock}
 
         {/* Tab switch — login/signup */}
         {mode !== 'forgot' && (
-          <div style={{ display: 'flex', background: '#FDF8F3', borderRadius: 100, padding: 4, marginBottom: 20, boxShadow: '0 2px 8px rgba(74,46,34,0.08)' }}>
+          <div style={{ display: 'flex', background: '#FAF7F2', borderRadius: 100, padding: 4, marginBottom: 20, boxShadow: '0 2px 8px rgba(47,74,59,0.08)' }}>
             {(['login','signup'] as const).map((m) => (
               <button key={m} onClick={() => reset(m)}
-                style={{ flex: 1, padding: '10px', borderRadius: 100, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans', sans-serif", transition: 'all 200ms',
-                  background: mode === m ? 'linear-gradient(135deg,#C9826B,#D4A96A)' : 'transparent',
-                  color: mode === m ? '#FDF8F3' : '#8A6A5A',
-                  boxShadow: mode === m ? '0 3px 10px rgba(201,130,107,0.3)' : 'none',
+                style={{ flex: 1, padding: '10px', borderRadius: 100, border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: "'Lato', sans-serif", transition: 'all 200ms',
+                  background: mode === m ? 'linear-gradient(135deg,#2F4A3B,#C49A5A)' : 'transparent',
+                  color: mode === m ? '#FAF7F2' : '#6B7F63',
+                  boxShadow: mode === m ? '0 3px 10px rgba(47,74,59,0.3)' : 'none',
                 }}>
                 {m === 'login' ? 'Entrar' : 'Criar conta'}
               </button>
@@ -161,12 +167,12 @@ export default function AuthPage() {
           </div>
         )}
 
-        <div style={{ background: '#FDF8F3', borderRadius: 24, padding: '28px 24px', boxShadow: '0 8px 32px rgba(74,46,34,0.12)' }}>
+        <div style={{ background: '#FAF7F2', borderRadius: 24, padding: '28px 24px', boxShadow: '0 8px 32px rgba(47,74,59,0.12)' }}>
 
           {/* ── LOGIN ── */}
           {mode === 'login' && !success && (
             <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, color: '#4A2E22', marginBottom: 4 }}>Bem-vinda de volta 🌿</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: '#2F4A3B', marginBottom: 4 }}>Bem-vinda de volta 🌿</div>
               <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="seu@email.com" />
               <Field label="Senha" type="password" value={senha} onChange={setSenha} placeholder="••••••••" />
               {errorBlock}
@@ -174,7 +180,7 @@ export default function AuthPage() {
                 {loading ? 'Entrando…' : 'Entrar'}
               </button>
               <button type="button" onClick={() => reset('forgot')}
-                style={{ background: 'none', border: 'none', fontSize: 13, color: '#8A6A5A', cursor: 'pointer', textAlign: 'center', textDecoration: 'underline', marginTop: -4 }}>
+                style={{ background: 'none', border: 'none', fontSize: 13, color: '#6B7F63', cursor: 'pointer', textAlign: 'center', textDecoration: 'underline', marginTop: -4 }}>
                 Esqueci minha senha
               </button>
             </form>
@@ -183,7 +189,7 @@ export default function AuthPage() {
           {/* ── SIGNUP ── */}
           {mode === 'signup' && !success && (
             <form onSubmit={handleSignup} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, color: '#4A2E22', marginBottom: 4 }}>Vamos começar! ✨</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: '#2F4A3B', marginBottom: 4 }}>Vamos começar! ✨</div>
               <Field label="Seu nome" type="text" value={nome} onChange={setNome} placeholder="ex: Ana Paula" />
               <Field label="Email" type="email" value={email} onChange={setEmail} placeholder="seu@email.com" />
               <Field label="Senha" type="password" value={senha} onChange={setSenha} placeholder="mínimo 6 caracteres" hint="Use letras, números ou símbolos." />
@@ -199,8 +205,8 @@ export default function AuthPage() {
           {mode === 'forgot' && !success && (
             <form onSubmit={handleForgot} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
-                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, color: '#4A2E22', marginBottom: 6 }}>Redefinir senha 🔑</div>
-                <div style={{ fontSize: 13, color: '#8A6A5A', lineHeight: 1.6 }}>Digite seu email e enviaremos um link para criar uma nova senha.</div>
+                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: '#2F4A3B', marginBottom: 6 }}>Redefinir senha 🔑</div>
+                <div style={{ fontSize: 13, color: '#6B7F63', lineHeight: 1.6 }}>Digite seu email e enviaremos um link para criar uma nova senha.</div>
               </div>
               <Field label="Email cadastrado" type="email" value={email} onChange={setEmail} placeholder="seu@email.com" />
               {errorBlock}
@@ -208,7 +214,7 @@ export default function AuthPage() {
                 {loading ? 'Enviando…' : 'Enviar link de redefinição'}
               </button>
               <button type="button" onClick={() => reset('login')}
-                style={{ background: 'none', border: 'none', fontSize: 13, color: '#8A6A5A', cursor: 'pointer', textAlign: 'center', textDecoration: 'underline' }}>
+                style={{ background: 'none', border: 'none', fontSize: 13, color: '#6B7F63', cursor: 'pointer', textAlign: 'center', textDecoration: 'underline' }}>
                 ← Voltar para o login
               </button>
             </form>
@@ -219,14 +225,14 @@ export default function AuthPage() {
             <div style={{ textAlign: 'center', padding: '8px 0', display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ fontSize: 44 }}>{mode === 'forgot' ? '📬' : '🎉'}</div>
               {successBlock}
-              <button onClick={() => reset('login')} style={{ background: 'none', border: 'none', fontSize: 13, color: '#C9826B', cursor: 'pointer', fontWeight: 600 }}>
+              <button onClick={() => reset('login')} style={{ background: 'none', border: 'none', fontSize: 13, color: '#2F4A3B', cursor: 'pointer', fontWeight: 600 }}>
                 {mode === 'forgot' ? '← Voltar para o login' : 'Fazer login agora →'}
               </button>
             </div>
           )}
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#B89B8C' }}>
+        <div style={{ textAlign: 'center', marginTop: 20, fontSize: 12, color: '#9DB09A' }}>
           Seus dados ficam seguros e privados 🔒
         </div>
       </div>

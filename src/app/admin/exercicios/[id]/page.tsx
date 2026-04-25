@@ -85,24 +85,24 @@ export default function EditExercicioPage({ params }: { params: Promise<{ id: st
     router.push('/admin/exercicios')
   }
 
-  const inp: React.CSSProperties = { width: '100%', background: '#F5EDE3', border: '1.5px solid #E8D8CC', borderRadius: 12, padding: '11px 14px', fontSize: 14, color: '#4A2E22', fontFamily: "'DM Sans',sans-serif", outline: 'none', boxSizing: 'border-box' }
-  const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#8A6A5A', display: 'block', marginBottom: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }
+  const inp: React.CSSProperties = { width: '100%', background: '#F3E9DC', border: '1.5px solid #DDD5C5', borderRadius: 12, padding: '11px 14px', fontSize: 14, color: '#2F4A3B', fontFamily: "'Lato',sans-serif", outline: 'none', boxSizing: 'border-box' }
+  const lbl: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: '#6B7F63', display: 'block', marginBottom: 6, letterSpacing: '0.06em', textTransform: 'uppercase' }
 
-  if (loading) return <div style={{ color: '#8A6A5A', padding: 20 }}>Carregando…</div>
+  if (loading) return <div style={{ color: '#6B7F63', padding: 20 }}>Carregando…</div>
 
   return (
     <div style={{ maxWidth: 640 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-        <button onClick={() => router.push('/admin/exercicios')} style={{ background: '#F0D5C8', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9826B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        <button onClick={() => router.push('/admin/exercicios')} style={{ background: '#D4E3D8', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
         <div>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: '#4A2E22' }}>{isNew ? 'Novo exercício' : 'Editar exercício'}</div>
-          <div style={{ fontSize: 12, color: '#8A6A5A' }}>{isNew ? 'Preencha os dados abaixo' : form.nome}</div>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 24, fontWeight: 600, color: '#2F4A3B' }}>{isNew ? 'Novo exercício' : 'Editar exercício'}</div>
+          <div style={{ fontSize: 12, color: '#6B7F63' }}>{isNew ? 'Preencha os dados abaixo' : form.nome}</div>
         </div>
       </div>
 
-      <div style={{ background: '#FDF8F3', borderRadius: 20, padding: 28, boxShadow: '0 4px 20px rgba(74,46,34,0.10)' }}>
+      <div style={{ background: '#FAF7F2', borderRadius: 20, padding: 28, boxShadow: '0 4px 20px rgba(47,74,59,0.10)' }}>
 
         <div style={{ marginBottom: 18 }}>
           <label style={lbl}>Nome do exercício *</label>
@@ -155,21 +155,21 @@ export default function EditExercicioPage({ params }: { params: Promise<{ id: st
           <input value={form.equipamento} onChange={set('equipamento')} placeholder="halteres, tapete (deixe vazio para sem equipamento)" style={inp} />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, padding: '12px 14px', background: '#F5EDE3', borderRadius: 12 }}>
-          <input type="checkbox" id="premium" checked={form.is_premium} onChange={set('is_premium')} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#D4A96A' }} />
-          <label htmlFor="premium" style={{ fontSize: 14, color: '#4A2E22', cursor: 'pointer' }}>
-            Conteúdo Premium <span style={{ fontSize: 12, color: '#8A6A5A' }}>— visível apenas para assinantes</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24, padding: '12px 14px', background: '#F3E9DC', borderRadius: 12 }}>
+          <input type="checkbox" id="premium" checked={form.is_premium} onChange={set('is_premium')} style={{ width: 16, height: 16, cursor: 'pointer', accentColor: '#C49A5A' }} />
+          <label htmlFor="premium" style={{ fontSize: 14, color: '#2F4A3B', cursor: 'pointer' }}>
+            Conteúdo Premium <span style={{ fontSize: 12, color: '#6B7F63' }}>— visível apenas para assinantes</span>
           </label>
         </div>
 
         <div style={{ display: 'flex', gap: 10 }}>
           <button onClick={save} disabled={saving || !form.nome.trim()}
-            style={{ flex: 1, border: 'none', borderRadius: 100, padding: '13px 0', fontSize: 15, fontWeight: 600, fontFamily: "'DM Sans',sans-serif", cursor: saving || !form.nome.trim() ? 'not-allowed' : 'pointer', background: saved ? '#8A9E7B' : saving ? '#D4A96A' : '#C9826B', color: '#FDF8F3', transition: 'background 200ms' }}>
+            style={{ flex: 1, border: 'none', borderRadius: 100, padding: '13px 0', fontSize: 15, fontWeight: 600, fontFamily: "'Lato',sans-serif", cursor: saving || !form.nome.trim() ? 'not-allowed' : 'pointer', background: saved ? '#6B7F63' : saving ? '#C49A5A' : '#2F4A3B', color: '#FAF7F2', transition: 'background 200ms' }}>
             {saved ? '✓ Salvo!' : saving ? 'Salvando…' : isNew ? 'Criar exercício' : 'Salvar alterações'}
           </button>
           {!isNew && (
             <button onClick={del} disabled={deleting}
-              style={{ background: '#F0D5C8', border: 'none', borderRadius: 100, padding: '13px 18px', fontSize: 14, fontWeight: 600, fontFamily: "'DM Sans',sans-serif", cursor: 'pointer', color: '#A06858' }}>
+              style={{ background: '#D4E3D8', border: 'none', borderRadius: 100, padding: '13px 18px', fontSize: 14, fontWeight: 600, fontFamily: "'Lato',sans-serif", cursor: 'pointer', color: '#A06858' }}>
               {deleting ? '…' : '🗑'}
             </button>
           )}

@@ -111,42 +111,42 @@ export default function ProfileScreen() {
   const initial = profile?.nome ? profile.nome[0].toUpperCase() : '?'
 
   if (loading) return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F5EDE3' }}>
-      <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, color: '#C9826B' }}>Carregando…</div>
+    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#F3E9DC' }}>
+      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, color: '#2F4A3B' }}>Carregando…</div>
     </div>
   )
 
   return (
-    <div style={{ flex: 1, overflowY: 'auto', background: '#F5EDE3' }}>
+    <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
 
       {/* Header */}
-      <div style={{ background: 'linear-gradient(160deg,#4A2E22,#7A4A32)', padding: '20px 20px 28px', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'linear-gradient(160deg,#2F4A3B,#2F4A3B)', padding: '20px 20px 28px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: -40, right: -20, width: 120, height: 120, borderRadius: '50%', background: 'rgba(212,169,106,0.08)' }} />
-        <div style={{ position: 'absolute', bottom: -20, left: -10, width: 80, height: 80, borderRadius: '50%', background: 'rgba(201,130,107,0.1)' }} />
+        <div style={{ position: 'absolute', bottom: -20, left: -10, width: 80, height: 80, borderRadius: '50%', background: 'rgba(47,74,59,0.1)' }} />
 
         {/* Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,#C9826B,#D4A96A)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.2)', flexShrink: 0 }}>
-            <span style={{ fontFamily: "'Playfair Display',serif", fontSize: 26, fontWeight: 600, color: '#FDF8F3' }}>{initial}</span>
+          <div style={{ width: 60, height: 60, borderRadius: '50%', background: 'linear-gradient(135deg,#2F4A3B,#C49A5A)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 14px rgba(0,0,0,0.2)', flexShrink: 0 }}>
+            <span style={{ fontFamily: "'Cinzel',serif", fontSize: 26, fontWeight: 600, color: '#FAF7F2' }}>{initial}</span>
           </div>
           <div style={{ flex: 1 }}>
             {editName ? (
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
                 <input value={nameInput} onChange={e => setNameInput(e.target.value)}
                   autoFocus
-                  style={{ background: 'rgba(253,248,243,0.15)', border: '1.5px solid rgba(253,248,243,0.3)', borderRadius: 10, padding: '6px 10px', fontSize: 16, color: '#FDF8F3', fontFamily: "'DM Sans',sans-serif", outline: 'none', flex: 1 }} />
+                  style={{ background: 'rgba(253,248,243,0.15)', border: '1.5px solid rgba(253,248,243,0.3)', borderRadius: 10, padding: '6px 10px', fontSize: 16, color: '#FAF7F2', fontFamily: "'Lato',sans-serif", outline: 'none', flex: 1 }} />
                 <button onClick={saveName} disabled={saving}
-                  style={{ background: '#C9826B', border: 'none', borderRadius: 8, padding: '6px 12px', color: '#FDF8F3', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif" }}>
+                  style={{ background: '#2F4A3B', border: 'none', borderRadius: 8, padding: '6px 12px', color: '#FAF7F2', fontSize: 12, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
                   {saving ? '…' : 'OK'}
                 </button>
               </div>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 600, color: '#FDF8F3' }}>
+                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 20, fontWeight: 600, color: '#FAF7F2' }}>
                   {profile?.nome ?? 'Sem nome'}
                 </div>
                 <button onClick={() => setEditName(true)}
-                  style={{ background: 'rgba(253,248,243,0.15)', border: 'none', borderRadius: 6, padding: '3px 8px', color: 'rgba(253,248,243,0.7)', fontSize: 11, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif" }}>
+                  style={{ background: 'rgba(253,248,243,0.15)', border: 'none', borderRadius: 6, padding: '3px 8px', color: 'rgba(253,248,243,0.7)', fontSize: 11, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
                   editar
                 </button>
               </div>
@@ -158,12 +158,12 @@ export default function ProfileScreen() {
         {/* Stats rápidos */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10 }}>
           {[
-            { label: 'Dias feitos',  value: `${doneDays}/21`, color: '#D4A96A' },
-            { label: 'Streak',       value: `🔥 ${profile?.sequencia_atual ?? 0}`, color: '#FDF8F3' },
-            { label: 'IMC',          value: profile?.imc ?? '—', color: '#FDF8F3' },
+            { label: 'Dias feitos',  value: `${doneDays}/21`, color: '#C49A5A' },
+            { label: 'Streak',       value: `🔥 ${profile?.sequencia_atual ?? 0}`, color: '#FAF7F2' },
+            { label: 'IMC',          value: profile?.imc ?? '—', color: '#FAF7F2' },
           ].map(s => (
             <div key={s.label} style={{ background: 'rgba(253,248,243,0.1)', borderRadius: 12, padding: '10px 12px', textAlign: 'center' }}>
-              <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 18, fontWeight: 600, color: s.color }}>{s.value}</div>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 18, fontWeight: 600, color: s.color }}>{s.value}</div>
               <div style={{ fontSize: 10, color: 'rgba(253,248,243,0.5)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>{s.label}</div>
             </div>
           ))}
@@ -173,19 +173,19 @@ export default function ProfileScreen() {
       <div style={{ padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
         {/* Medidas — peso principal */}
-        <div style={{ background: '#FDF8F3', borderRadius: 18, padding: 18, boxShadow: '0 3px 12px rgba(74,46,34,0.08)' }}>
+        <div style={{ background: '#FAF7F2', borderRadius: 18, padding: 18, boxShadow: '0 3px 12px rgba(47,74,59,0.08)' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: '#4A2E22' }}>Peso & Medidas</div>
+            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: '#2F4A3B' }}>Peso & Medidas</div>
             <button onClick={() => setShowMeasure(v => !v)}
-              style={{ background: '#C9826B', border: 'none', borderRadius: 100, padding: '6px 14px', color: '#FDF8F3', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif" }}>
+              style={{ background: '#2F4A3B', border: 'none', borderRadius: 100, padding: '6px 14px', color: '#FAF7F2', fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
               + Registrar
             </button>
           </div>
 
           {/* Formulário novo registro */}
           {showMeasure && (
-            <div style={{ background: '#F5EDE3', borderRadius: 14, padding: 14, marginBottom: 14 }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#4A2E22', marginBottom: 10 }}>Novo registro — hoje</div>
+            <div style={{ background: '#F3E9DC', borderRadius: 14, padding: 14, marginBottom: 14 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#2F4A3B', marginBottom: 10 }}>Novo registro — hoje</div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 10 }}>
                 {([
                   { key: 'peso',    label: 'Peso (kg)',    ph: '68.5' },
@@ -195,15 +195,15 @@ export default function ProfileScreen() {
                   { key: 'coxa',    label: 'Coxa (cm)',    ph: '55' },
                 ] as const).map(f => (
                   <div key={f.key}>
-                    <label style={{ fontSize: 10, color: '#8A6A5A', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 3 }}>{f.label}</label>
+                    <label style={{ fontSize: 10, color: '#6B7F63', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'block', marginBottom: 3 }}>{f.label}</label>
                     <input type="number" placeholder={f.ph} value={newMeasure[f.key]}
                       onChange={e => setNewMeasure(p => ({ ...p, [f.key]: e.target.value }))}
-                      style={{ width: '100%', background: '#FDF8F3', border: '1.5px solid #E8D8CC', borderRadius: 10, padding: '8px 10px', fontSize: 13, color: '#4A2E22', fontFamily: "'DM Sans',sans-serif", outline: 'none', boxSizing: 'border-box' }} />
+                      style={{ width: '100%', background: '#FAF7F2', border: '1.5px solid #DDD5C5', borderRadius: 10, padding: '8px 10px', fontSize: 13, color: '#2F4A3B', fontFamily: "'Lato',sans-serif", outline: 'none', boxSizing: 'border-box' }} />
                   </div>
                 ))}
               </div>
               <button onClick={saveMeasure} disabled={saving || (!newMeasure.peso && !newMeasure.cintura)}
-                style={{ width: '100%', background: saving ? '#D4A96A' : '#C9826B', border: 'none', borderRadius: 100, padding: '10px 0', color: '#FDF8F3', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'DM Sans',sans-serif" }}>
+                style={{ width: '100%', background: saving ? '#C49A5A' : '#2F4A3B', border: 'none', borderRadius: 100, padding: '10px 0', color: '#FAF7F2', fontSize: 13, fontWeight: 600, cursor: 'pointer', fontFamily: "'Lato',sans-serif" }}>
                 {saving ? 'Salvando…' : 'Salvar medidas'}
               </button>
             </div>
@@ -212,13 +212,13 @@ export default function ProfileScreen() {
           {/* Resumo peso */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 14 }}>
             {[
-              { label: 'Peso inicial', value: profile?.peso_inicial ? `${profile.peso_inicial} kg` : '—', color: '#8A6A5A' },
-              { label: 'Atual',        value: latest?.peso ? `${latest.peso} kg` : '—', color: '#C9826B' },
-              { label: 'Perda total',  value: totalLoss !== null && totalLoss > 0 ? `−${totalLoss} kg` : '—', color: '#8A9E7B' },
+              { label: 'Peso inicial', value: profile?.peso_inicial ? `${profile.peso_inicial} kg` : '—', color: '#6B7F63' },
+              { label: 'Atual',        value: latest?.peso ? `${latest.peso} kg` : '—', color: '#2F4A3B' },
+              { label: 'Perda total',  value: totalLoss !== null && totalLoss > 0 ? `−${totalLoss} kg` : '—', color: '#6B7F63' },
             ].map(s => (
-              <div key={s.label} style={{ background: '#F5EDE3', borderRadius: 12, padding: '10px 10px', textAlign: 'center' }}>
-                <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: s.color }}>{s.value}</div>
-                <div style={{ fontSize: 10, color: '#B89B8C', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{s.label}</div>
+              <div key={s.label} style={{ background: '#F3E9DC', borderRadius: 12, padding: '10px 10px', textAlign: 'center' }}>
+                <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: s.color }}>{s.value}</div>
+                <div style={{ fontSize: 10, color: '#9DB09A', textTransform: 'uppercase', letterSpacing: '0.04em', marginTop: 2 }}>{s.label}</div>
               </div>
             ))}
           </div>
@@ -226,19 +226,19 @@ export default function ProfileScreen() {
           {/* Histórico */}
           {measures.length > 0 ? (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#8A6A5A', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Histórico</div>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#6B7F63', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.04em' }}>Histórico</div>
               {measures.slice(0, 5).map((m, i) => (
                 <div key={m.id} style={{ display: 'flex', alignItems: 'center', padding: '8px 0', borderBottom: i < Math.min(measures.length, 5) - 1 ? '1px solid #F0E4DC' : 'none', gap: 10 }}>
-                  <div style={{ fontSize: 11, color: '#8A6A5A', width: 72, flexShrink: 0 }}>
+                  <div style={{ fontSize: 11, color: '#6B7F63', width: 72, flexShrink: 0 }}>
                     {new Date(m.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })}
                   </div>
                   <div style={{ display: 'flex', gap: 12, flex: 1, flexWrap: 'wrap' }}>
-                    {m.peso    && <span style={{ fontSize: 12, color: '#4A2E22' }}>⚖️ {m.peso}kg</span>}
-                    {m.cintura && <span style={{ fontSize: 12, color: '#4A2E22' }}>📏 {m.cintura}cm</span>}
-                    {m.quadril && <span style={{ fontSize: 12, color: '#4A2E22' }}>hip {m.quadril}cm</span>}
+                    {m.peso    && <span style={{ fontSize: 12, color: '#2F4A3B' }}>⚖️ {m.peso}kg</span>}
+                    {m.cintura && <span style={{ fontSize: 12, color: '#2F4A3B' }}>📏 {m.cintura}cm</span>}
+                    {m.quadril && <span style={{ fontSize: 12, color: '#2F4A3B' }}>hip {m.quadril}cm</span>}
                   </div>
                   {i === 0 && weightDiff !== null && (
-                    <span style={{ fontSize: 11, fontWeight: 600, color: weightDiff <= 0 ? '#8A9E7B' : '#C9826B' }}>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: weightDiff <= 0 ? '#6B7F63' : '#2F4A3B' }}>
                       {weightDiff > 0 ? '+' : ''}{weightDiff}kg
                     </span>
                   )}
@@ -246,15 +246,15 @@ export default function ProfileScreen() {
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', padding: '12px 0', fontSize: 13, color: '#B89B8C' }}>
+            <div style={{ textAlign: 'center', padding: '12px 0', fontSize: 13, color: '#9DB09A' }}>
               Nenhum registro ainda — adicione o primeiro!
             </div>
           )}
         </div>
 
         {/* Minhas informações */}
-        <div style={{ background: '#FDF8F3', borderRadius: 18, padding: 18, boxShadow: '0 3px 12px rgba(74,46,34,0.08)' }}>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: '#4A2E22', marginBottom: 14 }}>Minhas informações</div>
+        <div style={{ background: '#FAF7F2', borderRadius: 18, padding: 18, boxShadow: '0 3px 12px rgba(47,74,59,0.08)' }}>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: '#2F4A3B', marginBottom: 14 }}>Minhas informações</div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {[
               { icon: '🎂', label: 'Idade',         value: profile?.idade ? `${profile.idade} anos` : '—' },
@@ -263,28 +263,28 @@ export default function ProfileScreen() {
               { icon: '⚡', label: 'Nível',          value: NIVEL_LABEL[profile?.nivel_atividade ?? ''] ?? profile?.nivel_atividade ?? '—' },
               { icon: '📅', label: 'Dias/semana',    value: profile?.dias_semana ? `${profile.dias_semana} dias` : '—' },
             ].map(row => (
-              <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F5EDE3' }}>
+              <div key={row.label} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F3E9DC' }}>
                 <span style={{ fontSize: 16, width: 24, textAlign: 'center', flexShrink: 0 }}>{row.icon}</span>
-                <span style={{ fontSize: 12, color: '#8A6A5A', width: 80, flexShrink: 0 }}>{row.label}</span>
-                <span style={{ fontSize: 13, color: '#4A2E22', fontWeight: 500 }}>{row.value}</span>
+                <span style={{ fontSize: 12, color: '#6B7F63', width: 80, flexShrink: 0 }}>{row.label}</span>
+                <span style={{ fontSize: 13, color: '#2F4A3B', fontWeight: 500 }}>{row.value}</span>
               </div>
             ))}
           </div>
           {profile?.motivacao && (
-            <div style={{ marginTop: 12, background: '#F0D5C8', borderRadius: 12, padding: '10px 14px' }}>
-              <div style={{ fontSize: 10, color: '#C9826B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Minha motivação</div>
-              <div style={{ fontSize: 13, color: '#4A2E22', lineHeight: 1.5, fontStyle: 'italic' }}>"{profile.motivacao}"</div>
+            <div style={{ marginTop: 12, background: '#D4E3D8', borderRadius: 12, padding: '10px 14px' }}>
+              <div style={{ fontSize: 10, color: '#2F4A3B', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 3 }}>Minha motivação</div>
+              <div style={{ fontSize: 13, color: '#2F4A3B', lineHeight: 1.5, fontStyle: 'italic' }}>"{profile.motivacao}"</div>
             </div>
           )}
         </div>
 
         {/* Condições de saúde */}
         {(profile?.condicoes_saude ?? []).length > 0 && (
-          <div style={{ background: '#FDF8F3', borderRadius: 18, padding: 18, boxShadow: '0 3px 12px rgba(74,46,34,0.08)' }}>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: '#4A2E22', marginBottom: 10 }}>Condições de saúde</div>
+          <div style={{ background: '#FAF7F2', borderRadius: 18, padding: 18, boxShadow: '0 3px 12px rgba(47,74,59,0.08)' }}>
+            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, fontWeight: 600, color: '#2F4A3B', marginBottom: 10 }}>Condições de saúde</div>
             <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               {(profile?.condicoes_saude ?? []).map(c => (
-                <span key={c} style={{ background: '#F0D5C8', borderRadius: 100, padding: '4px 12px', fontSize: 12, color: '#7A4A32' }}>{c}</span>
+                <span key={c} style={{ background: '#D4E3D8', borderRadius: 100, padding: '4px 12px', fontSize: 12, color: '#2F4A3B' }}>{c}</span>
               ))}
             </div>
           </div>
@@ -292,7 +292,7 @@ export default function ProfileScreen() {
 
         {/* Sair */}
         <button onClick={logout}
-          style={{ width: '100%', background: 'transparent', border: '1.5px solid #E8D8CC', borderRadius: 100, padding: 13, fontSize: 14, fontWeight: 500, color: '#8A6A5A', cursor: 'pointer', fontFamily: "'DM Sans',sans-serif", marginTop: 4, marginBottom: 16 }}>
+          style={{ width: '100%', background: 'transparent', border: '1.5px solid #DDD5C5', borderRadius: 100, padding: 13, fontSize: 14, fontWeight: 500, color: '#6B7F63', cursor: 'pointer', fontFamily: "'Lato',sans-serif", marginTop: 4, marginBottom: 16 }}>
           Sair da conta
         </button>
       </div>

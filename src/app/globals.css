@@ -1,28 +1,38 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary:         #C9826B;
-  --color-primary-hover:   #B8705A;
-  --color-primary-light:   #F0D5C8;
-  --color-secondary:       #8A9E7B;
-  --color-secondary-light: #D6E4CE;
-  --color-accent:          #D4A96A;
-  --color-accent-light:    #F0DEBB;
-  --color-bg:              #F5EDE3;
-  --color-bg-alt:          #EDE0D3;
-  --color-surface:         #FDF8F3;
-  --color-text:            #4A2E22;
-  --color-text-muted:      #8A6A5A;
-  --color-text-subtle:     #B89B8C;
-  --color-border:          #E8D8CC;
-  --color-border-strong:   #D4BEB2;
-  --font-display:          'Playfair Display', Georgia, serif;
-  --font-body:             'DM Sans', system-ui, sans-serif;
-  --font-callout:          'Cormorant Garamond', Georgia, serif;
-  --shadow-sm:     0 2px 8px  rgba(74, 46, 34, 0.08);
-  --shadow-md:     0 4px 16px rgba(74, 46, 34, 0.12);
-  --shadow-lg:     0 8px 32px rgba(74, 46, 34, 0.16);
-  --shadow-primary:0 4px 16px rgba(201, 130, 107, 0.35);
+  /* ── VIVER BEM — Brand Tokens ─────────────────────────── */
+  --color-primary:          #2F4A3B;
+  --color-primary-hover:    #243A2D;
+  --color-primary-light:    #D4E3D8;
+  --color-primary-light-bg: rgba(47,74,59,.1);
+  --color-secondary:        #6B7F63;
+  --color-secondary-hover:  #5C6F55;
+  --color-secondary-light:  #D6E4CE;
+  --color-secondary-light-bg: rgba(107,127,99,.1);
+  --color-accent:           #C49A5A;
+  --color-accent-hover:     #B08844;
+  --color-accent-light:     #EDD9B0;
+  --color-accent-light-bg:  rgba(196,154,90,.12);
+  --color-bg:               #F3E9DC;
+  --color-bg-alt:           #EBE0CF;
+  --color-bg-dark:          #243A2D;
+  --color-bg-deeper:        #1A2B20;
+  --color-surface:          #FAF7F2;
+  --color-text:             #2F4A3B;
+  --color-text-muted:       #6B7F63;
+  --color-text-subtle:      #9DB09A;
+  --color-text-on-dark:     #FAF7F2;
+  --color-border:           #DDD5C5;
+  --color-border-strong:    #C8BEAE;
+  --color-error:            #B05555;
+  --font-display:           'Cinzel', Georgia, serif;
+  --font-body:              'Lato', system-ui, sans-serif;
+  --font-callout:           'Lato', Georgia, serif;
+  --shadow-sm:     0 2px 8px  rgba(47,74,59,.08);
+  --shadow-md:     0 4px 16px rgba(47,74,59,.12);
+  --shadow-lg:     0 8px 32px rgba(47,74,59,.16);
+  --shadow-primary:0 4px 16px rgba(47,74,59,.28);
   --ease-out:      cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -31,7 +41,7 @@
 html, body {
   margin: 0; padding: 0;
   font-family: var(--font-body);
-  background: #1E1108;
+  background: #1A2B20;
   color: var(--color-text);
   -webkit-font-smoothing: antialiased;
   height: 100%;

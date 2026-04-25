@@ -63,32 +63,32 @@ export default function EditDayPage({ params }: { params: Promise<{ day: string 
   }
 
   const inputStyle: React.CSSProperties = {
-    width: '100%', background: '#F5EDE3', border: '1.5px solid #E8D8CC',
-    borderRadius: 12, padding: '11px 14px', fontSize: 14, color: '#4A2E22',
-    fontFamily: "'DM Sans',sans-serif", outline: 'none', boxSizing: 'border-box',
+    width: '100%', background: '#F3E9DC', border: '1.5px solid #DDD5C5',
+    borderRadius: 12, padding: '11px 14px', fontSize: 14, color: '#2F4A3B',
+    fontFamily: "'Lato',sans-serif", outline: 'none', boxSizing: 'border-box',
   }
   const labelStyle: React.CSSProperties = {
-    fontSize: 11, fontWeight: 600, color: '#8A6A5A', display: 'block',
+    fontSize: 11, fontWeight: 600, color: '#6B7F63', display: 'block',
     marginBottom: 6, letterSpacing: '0.06em', textTransform: 'uppercase',
   }
 
-  if (loading) return <div style={{ color: '#8A6A5A', padding: 20 }}>Carregando…</div>
+  if (loading) return <div style={{ color: '#6B7F63', padding: 20 }}>Carregando…</div>
 
   return (
     <div style={{ maxWidth: 620 }}>
       {/* Breadcrumb */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 24 }}>
         <button onClick={() => router.push('/admin/desafio')}
-          style={{ background: '#F0D5C8', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#C9826B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+          style={{ background: '#D4E3D8', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2F4A3B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <div>
-          <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 24, fontWeight: 600, color: '#4A2E22' }}>Dia {day}</div>
-          <div style={{ fontSize: 12, color: '#8A6A5A' }}>Editar conteúdo do desafio</div>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 24, fontWeight: 600, color: '#2F4A3B' }}>Dia {day}</div>
+          <div style={{ fontSize: 12, color: '#6B7F63' }}>Editar conteúdo do desafio</div>
         </div>
       </div>
 
-      <div style={{ background: '#FDF8F3', borderRadius: 20, padding: 28, boxShadow: '0 4px 20px rgba(74,46,34,0.10)' }}>
+      <div style={{ background: '#FAF7F2', borderRadius: 20, padding: 28, boxShadow: '0 4px 20px rgba(47,74,59,0.10)' }}>
 
         {/* Título */}
         <div style={{ marginBottom: 18 }}>
@@ -110,7 +110,7 @@ export default function EditDayPage({ params }: { params: Promise<{ day: string 
           <input value={form.video_url} onChange={set('video_url')}
             placeholder="https://youtube.com/watch?v=... ou https://youtu.be/..." style={inputStyle} />
           {form.video_url && (
-            <div style={{ fontSize: 11, color: '#8A9E7B', marginTop: 5 }}>
+            <div style={{ fontSize: 11, color: '#6B7F63', marginTop: 5 }}>
               ✓ Vídeo vai aparecer incorporado no app
             </div>
           )}
@@ -143,9 +143,9 @@ export default function EditDayPage({ params }: { params: Promise<{ day: string 
         <button onClick={save} disabled={saving || !form.titulo.trim()}
           style={{
             width: '100%', border: 'none', borderRadius: 100, padding: '14px 0', fontSize: 15, fontWeight: 600,
-            fontFamily: "'DM Sans',sans-serif", cursor: saving || !form.titulo.trim() ? 'not-allowed' : 'pointer',
-            background: saved ? '#8A9E7B' : saving ? '#D4A96A' : '#C9826B',
-            color: '#FDF8F3', transition: 'background 200ms',
+            fontFamily: "'Lato',sans-serif", cursor: saving || !form.titulo.trim() ? 'not-allowed' : 'pointer',
+            background: saved ? '#6B7F63' : saving ? '#C49A5A' : '#2F4A3B',
+            color: '#FAF7F2', transition: 'background 200ms',
           }}>
           {saved ? '✓ Salvo com sucesso!' : saving ? 'Salvando…' : `Salvar Dia ${day}`}
         </button>

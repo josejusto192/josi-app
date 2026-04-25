@@ -27,20 +27,20 @@ function MarkdownContent({ text }: { text: string }) {
 
     // H1
     if (line.startsWith('# ')) {
-      elements.push(<h1 key={i} style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:600, color:'#4A2E22', margin:'20px 0 10px', lineHeight:1.3 }}>{line.slice(2)}</h1>)
+      elements.push(<h1 key={i} style={{ fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:600, color:'#2F4A3B', margin:'20px 0 10px', lineHeight:1.3 }}>{line.slice(2)}</h1>)
     }
     // H2
     else if (line.startsWith('## ')) {
-      elements.push(<h2 key={i} style={{ fontFamily:"'Playfair Display',serif", fontSize:17, fontWeight:600, color:'#4A2E22', margin:'18px 0 8px', lineHeight:1.3 }}>{line.slice(3)}</h2>)
+      elements.push(<h2 key={i} style={{ fontFamily:"'Cinzel',serif", fontSize:17, fontWeight:600, color:'#2F4A3B', margin:'18px 0 8px', lineHeight:1.3 }}>{line.slice(3)}</h2>)
     }
     // H3
     else if (line.startsWith('### ')) {
-      elements.push(<h3 key={i} style={{ fontSize:15, fontWeight:600, color:'#4A2E22', margin:'14px 0 6px' }}>{line.slice(4)}</h3>)
+      elements.push(<h3 key={i} style={{ fontSize:15, fontWeight:600, color:'#2F4A3B', margin:'14px 0 6px' }}>{line.slice(4)}</h3>)
     }
     // Blockquote
     else if (line.startsWith('> ')) {
       elements.push(
-        <blockquote key={i} style={{ borderLeft:'3px solid #C9826B', paddingLeft:14, margin:'12px 0', color:'#8A6A5A', fontStyle:'italic', fontSize:14, lineHeight:1.6 }}>
+        <blockquote key={i} style={{ borderLeft:'3px solid #2F4A3B', paddingLeft:14, margin:'12px 0', color:'#6B7F63', fontStyle:'italic', fontSize:14, lineHeight:1.6 }}>
           {line.slice(2)}
         </blockquote>
       )
@@ -51,7 +51,7 @@ function MarkdownContent({ text }: { text: string }) {
       i++
       while (i < lines.length && !lines[i].startsWith('```')) { codeLines.push(lines[i]); i++ }
       elements.push(
-        <pre key={i} style={{ background:'#F0E4DC', borderRadius:10, padding:'12px 14px', fontSize:12, overflowX:'auto', margin:'10px 0', color:'#4A2E22', lineHeight:1.6 }}>
+        <pre key={i} style={{ background:'#F0E4DC', borderRadius:10, padding:'12px 14px', fontSize:12, overflowX:'auto', margin:'10px 0', color:'#2F4A3B', lineHeight:1.6 }}>
           <code>{codeLines.join('\n')}</code>
         </pre>
       )
@@ -66,9 +66,9 @@ function MarkdownContent({ text }: { text: string }) {
         <div key={i} style={{ overflowX:'auto', margin:'12px 0' }}>
           <table style={{ borderCollapse:'collapse', width:'100%', fontSize:13 }}>
             {rows.map((row, ri) => (
-              <tr key={ri} style={{ background: ri === 0 ? '#F0D5C8' : ri % 2 === 0 ? '#F5EDE3' : '#FDF8F3' }}>
+              <tr key={ri} style={{ background: ri === 0 ? '#D4E3D8' : ri % 2 === 0 ? '#F3E9DC' : '#FAF7F2' }}>
                 {row.split('|').filter(c => c.trim()).map((cell, ci) => (
-                  <td key={ci} style={{ padding:'8px 12px', color:'#4A2E22', fontWeight: ri === 0 ? 600 : 400, borderBottom:'1px solid #E8D8CC' }}>{cell.trim()}</td>
+                  <td key={ci} style={{ padding:'8px 12px', color:'#2F4A3B', fontWeight: ri === 0 ? 600 : 400, borderBottom:'1px solid #DDD5C5' }}>{cell.trim()}</td>
                 ))}
               </tr>
             ))}
@@ -85,7 +85,7 @@ function MarkdownContent({ text }: { text: string }) {
       }
       elements.push(
         <ul key={i} style={{ paddingLeft:18, margin:'8px 0', display:'flex', flexDirection:'column', gap:4 }}>
-          {items.map((item, ii) => <li key={ii} style={{ fontSize:14, color:'#4A2E22', lineHeight:1.6 }} dangerouslySetInnerHTML={{ __html: parseInline(item) }} />)}
+          {items.map((item, ii) => <li key={ii} style={{ fontSize:14, color:'#2F4A3B', lineHeight:1.6 }} dangerouslySetInnerHTML={{ __html: parseInline(item) }} />)}
         </ul>
       )
     }
@@ -97,13 +97,13 @@ function MarkdownContent({ text }: { text: string }) {
       }
       elements.push(
         <ol key={i} style={{ paddingLeft:20, margin:'8px 0', display:'flex', flexDirection:'column', gap:4 }}>
-          {items.map((item, ii) => <li key={ii} style={{ fontSize:14, color:'#4A2E22', lineHeight:1.6 }} dangerouslySetInnerHTML={{ __html: parseInline(item) }} />)}
+          {items.map((item, ii) => <li key={ii} style={{ fontSize:14, color:'#2F4A3B', lineHeight:1.6 }} dangerouslySetInnerHTML={{ __html: parseInline(item) }} />)}
         </ol>
       )
     }
     // Horizontal rule
     else if (line.match(/^---+$/)) {
-      elements.push(<hr key={i} style={{ border:'none', borderTop:'1px solid #E8D8CC', margin:'16px 0' }} />)
+      elements.push(<hr key={i} style={{ border:'none', borderTop:'1px solid #DDD5C5', margin:'16px 0' }} />)
     }
     // Empty line
     else if (line.trim() === '') {
@@ -112,7 +112,7 @@ function MarkdownContent({ text }: { text: string }) {
     // Paragraph
     else {
       elements.push(
-        <p key={i} style={{ fontSize:14, color:'#4A2E22', lineHeight:1.7, margin:'4px 0' }} dangerouslySetInnerHTML={{ __html: parseInline(line) }} />
+        <p key={i} style={{ fontSize:14, color:'#2F4A3B', lineHeight:1.7, margin:'4px 0' }} dangerouslySetInnerHTML={{ __html: parseInline(line) }} />
       )
     }
     i++
@@ -124,7 +124,7 @@ function parseInline(text: string) {
   return text
     .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code style="background:#F0D5C8;padding:1px 5px;border-radius:4px;font-size:0.9em">$1</code>')
+    .replace(/`(.+?)`/g, '<code style="background:#D4E3D8;padding:1px 5px;border-radius:4px;font-size:0.9em">$1</code>')
     .replace(/~~(.+?)~~/g, '<del>$1</del>')
 }
 
@@ -148,28 +148,28 @@ export default function LessonViewer({ lessonId, onBack, onComplete, isCompleted
   }, [lessonId])
 
   if (loading) return (
-    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F5EDE3' }}>
-      <div style={{ color:'#8A6A5A', fontSize:13 }}>Carregando aula…</div>
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F3E9DC' }}>
+      <div style={{ color:'#6B7F63', fontSize:13 }}>Carregando aula…</div>
     </div>
   )
 
   if (!lesson) return (
-    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F5EDE3' }}>
-      <div style={{ color:'#8A6A5A', fontSize:13 }}>Aula não encontrada.</div>
+    <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', background:'#F3E9DC' }}>
+      <div style={{ color:'#6B7F63', fontSize:13 }}>Aula não encontrada.</div>
     </div>
   )
 
   const ytId = lesson.tipo === 'video' ? getYouTubeId(lesson.video_url) : null
 
   return (
-    <div style={{ flex:1, overflowY:'auto', background:'#F5EDE3' }}>
+    <div style={{ flex:1, overflowY:'auto', background:'#F3E9DC' }}>
       {/* Top bar */}
       <div style={{ background: courseGradient, padding:'14px 16px', display:'flex', alignItems:'center', gap:12 }}>
         <button onClick={onBack}
           style={{ width:34, height:34, borderRadius:'50%', background:'rgba(0,0,0,0.2)', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FDF8F3" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
-        <div style={{ flex:1, fontFamily:"'Playfair Display',serif", fontSize:16, fontWeight:600, color:'#FDF8F3', lineHeight:1.2 }}>{lesson.titulo}</div>
+        <div style={{ flex:1, fontFamily:"'Cinzel',serif", fontSize:16, fontWeight:600, color:'#FAF7F2', lineHeight:1.2 }}>{lesson.titulo}</div>
         {isCompleted && <span style={{ fontSize:18 }}>✅</span>}
       </div>
 
@@ -203,10 +203,10 @@ export default function LessonViewer({ lessonId, onBack, onComplete, isCompleted
 
         {/* Title + meta */}
         <div style={{ padding:'18px 20px 0' }}>
-          <div style={{ fontFamily:"'Playfair Display',serif", fontSize:20, fontWeight:600, color:'#4A2E22', marginBottom:6, lineHeight:1.3 }}>{lesson.titulo}</div>
+          <div style={{ fontFamily:"'Cinzel',serif", fontSize:20, fontWeight:600, color:'#2F4A3B', marginBottom:6, lineHeight:1.3 }}>{lesson.titulo}</div>
           <div style={{ display:'flex', gap:10, marginBottom: lesson.descricao ? 12 : 0 }}>
             {lesson.duracao_min && (
-              <span style={{ fontSize:11, color:'#8A6A5A', background:'#F0D5C8', borderRadius:100, padding:'2px 10px' }}>
+              <span style={{ fontSize:11, color:'#6B7F63', background:'#D4E3D8', borderRadius:100, padding:'2px 10px' }}>
                 ⏱ {lesson.duracao_min}min
               </span>
             )}
@@ -217,18 +217,18 @@ export default function LessonViewer({ lessonId, onBack, onComplete, isCompleted
             )}
           </div>
           {lesson.descricao && (
-            <div style={{ fontSize:13, color:'#8A6A5A', lineHeight:1.65, marginBottom:4 }}>{lesson.descricao}</div>
+            <div style={{ fontSize:13, color:'#6B7F63', lineHeight:1.65, marginBottom:4 }}>{lesson.descricao}</div>
           )}
         </div>
 
         {/* TEXT / MARKDOWN */}
         {(lesson.tipo === 'texto' || lesson.tipo === 'markdown') && lesson.conteudo && (
           <div style={{ padding:'16px 20px 0' }}>
-            <div style={{ background:'#FDF8F3', borderRadius:18, padding:'18px 18px', boxShadow:'0 2px 8px rgba(74,46,34,0.07)' }}>
+            <div style={{ background:'#FAF7F2', borderRadius:18, padding:'18px 18px', boxShadow:'0 2px 8px rgba(47,74,59,0.07)' }}>
               {lesson.tipo === 'markdown' ? (
                 <MarkdownContent text={lesson.conteudo} />
               ) : (
-                <div style={{ fontSize:14, color:'#4A2E22', lineHeight:1.75, whiteSpace:'pre-wrap' }}>{lesson.conteudo}</div>
+                <div style={{ fontSize:14, color:'#2F4A3B', lineHeight:1.75, whiteSpace:'pre-wrap' }}>{lesson.conteudo}</div>
               )}
             </div>
           </div>
@@ -242,12 +242,12 @@ export default function LessonViewer({ lessonId, onBack, onComplete, isCompleted
             </div>
           ) : (
             <button onClick={onComplete}
-              style={{ width:'100%', background: courseGradient, border:'none', borderRadius:100, padding:'14px', fontSize:15, fontWeight:600, color:'#FDF8F3', fontFamily:"'DM Sans',sans-serif", cursor:'pointer', boxShadow:'0 4px 16px rgba(201,130,107,0.3)' }}>
+              style={{ width:'100%', background: courseGradient, border:'none', borderRadius:100, padding:'14px', fontSize:15, fontWeight:600, color:'#FAF7F2', fontFamily:"'Lato',sans-serif", cursor:'pointer', boxShadow:'0 4px 16px rgba(47,74,59,0.3)' }}>
               Marcar como concluída ✓
             </button>
           )}
           <button onClick={onBack}
-            style={{ width:'100%', background:'none', border:'none', marginTop:12, fontSize:13, color:'#8A6A5A', cursor:'pointer' }}>
+            style={{ width:'100%', background:'none', border:'none', marginTop:12, fontSize:13, color:'#6B7F63', cursor:'pointer' }}>
             ← Voltar para o curso
           </button>
         </div>

@@ -30,11 +30,11 @@ export default async function AdminLojaPage() {
     <div>
       <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: isMock ? 12 : 28 }}>
         <div>
-          <h1 style={{ fontFamily: "'Playfair Display',serif", fontSize: 28, fontWeight: 600, color: '#4A2E22', margin: '0 0 4px' }}>Loja</h1>
-          <p style={{ color: '#8A6A5A', fontSize: 14, margin: 0 }}>Gerencie produtos, planos e ofertas</p>
+          <h1 style={{ fontFamily: "'Cinzel',serif", fontSize: 28, fontWeight: 600, color: '#2F4A3B', margin: '0 0 4px' }}>Loja</h1>
+          <p style={{ color: '#6B7F63', fontSize: 14, margin: 0 }}>Gerencie produtos, planos e ofertas</p>
         </div>
         <Link href="/admin/loja/novo" style={{ textDecoration: 'none' }}>
-          <div style={{ background: '#C9826B', borderRadius: 100, padding: '10px 20px', color: '#FDF8F3', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Novo produto</div>
+          <div style={{ background: '#2F4A3B', borderRadius: 100, padding: '10px 20px', color: '#FAF7F2', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}>+ Novo produto</div>
         </Link>
       </div>
 
@@ -51,14 +51,14 @@ export default async function AdminLojaPage() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 28 }}>
         {[
-          { label: 'Total produtos',  value: total,             color: '#C9826B' },
-          { label: 'Ativos',          value: active,            color: '#8A9E7B' },
-          { label: 'Em destaque',     value: featured,          color: '#D4A96A' },
+          { label: 'Total produtos',  value: total,             color: '#2F4A3B' },
+          { label: 'Ativos',          value: active,            color: '#6B7F63' },
+          { label: 'Em destaque',     value: featured,          color: '#C49A5A' },
           { label: 'Soma dos preços', value: `R$ ${revenue}`,   color: '#7A5020' },
         ].map(s => (
-          <div key={s.label} style={{ background: '#FDF8F3', borderRadius: 16, padding: '16px 18px', boxShadow: '0 2px 8px rgba(74,46,34,0.08)' }}>
-            <div style={{ fontSize: 11, color: '#8A6A5A', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
-            <div style={{ fontFamily: "'Playfair Display',serif", fontSize: isMock ? 20 : 28, fontWeight: 600, color: s.color }}>{s.value}</div>
+          <div key={s.label} style={{ background: '#FAF7F2', borderRadius: 16, padding: '16px 18px', boxShadow: '0 2px 8px rgba(47,74,59,0.08)' }}>
+            <div style={{ fontSize: 11, color: '#6B7F63', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: 6 }}>{s.label}</div>
+            <div style={{ fontFamily: "'Cinzel',serif", fontSize: isMock ? 20 : 28, fontWeight: 600, color: s.color }}>{s.value}</div>
           </div>
         ))}
       </div>
@@ -72,40 +72,40 @@ export default async function AdminLojaPage() {
 
           return (
             <Link key={product.id} href={isMock ? '/admin/loja/novo' : `/admin/loja/${product.id}`} style={{ textDecoration: 'none' }}>
-              <div style={{ background: '#FDF8F3', borderRadius: 16, padding: '16px 20px', boxShadow: '0 2px 8px rgba(74,46,34,0.08)', display: 'flex', alignItems: 'center', gap: 16, opacity: product.is_active ? 1 : 0.55, border: product.destaque ? '2px solid #D4A96A' : '2px solid transparent', cursor: 'pointer' }}>
+              <div style={{ background: '#FAF7F2', borderRadius: 16, padding: '16px 20px', boxShadow: '0 2px 8px rgba(47,74,59,0.08)', display: 'flex', alignItems: 'center', gap: 16, opacity: product.is_active ? 1 : 0.55, border: product.destaque ? '2px solid #C49A5A' : '2px solid transparent', cursor: 'pointer' }}>
                 {/* Ícone */}
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#F0D5C8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: '#D4E3D8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 20, flexShrink: 0 }}>
                   {CAT_ICON[product.categoria] ?? '📦'}
                 </div>
 
                 {/* Info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#4A2E22' }}>{product.nome}</div>
+                    <div style={{ fontSize: 15, fontWeight: 600, color: '#2F4A3B' }}>{product.nome}</div>
                     {product.destaque && <span style={{ fontSize: 9, fontWeight: 700, color: '#7A5020', background: '#F5E6CE', padding: '2px 7px', borderRadius: 100 }}>DESTAQUE</span>}
-                    {!product.is_active && <span style={{ fontSize: 9, fontWeight: 700, color: '#8A6A5A', background: '#F0E4DC', padding: '2px 7px', borderRadius: 100 }}>INATIVO</span>}
+                    {!product.is_active && <span style={{ fontSize: 9, fontWeight: 700, color: '#6B7F63', background: '#F0E4DC', padding: '2px 7px', borderRadius: 100 }}>INATIVO</span>}
                   </div>
                   <div style={{ display: 'flex', gap: 8 }}>
-                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: '#F5EDE3', color: '#8A6A5A' }}>{product.categoria}</span>
-                    {product.estoque !== null && <span style={{ fontSize: 11, color: '#8A6A5A' }}>Estoque: {product.estoque}</span>}
-                    {!product.estoque && product.estoque !== 0 && <span style={{ fontSize: 11, color: '#8A9E7B' }}>Digital ∞</span>}
+                    <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 100, background: '#F3E9DC', color: '#6B7F63' }}>{product.categoria}</span>
+                    {product.estoque !== null && <span style={{ fontSize: 11, color: '#6B7F63' }}>Estoque: {product.estoque}</span>}
+                    {!product.estoque && product.estoque !== 0 && <span style={{ fontSize: 11, color: '#6B7F63' }}>Digital ∞</span>}
                   </div>
                 </div>
 
                 {/* Preço */}
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   {product.preco_original && (
-                    <div style={{ fontSize: 11, color: '#B89B8C', textDecoration: 'line-through' }}>
+                    <div style={{ fontSize: 11, color: '#9DB09A', textDecoration: 'line-through' }}>
                       R$ {product.preco_original}
                     </div>
                   )}
-                  <div style={{ fontFamily: "'Playfair Display',serif", fontSize: 20, fontWeight: 600, color: '#C9826B' }}>
+                  <div style={{ fontFamily: "'Cinzel',serif", fontSize: 20, fontWeight: 600, color: '#2F4A3B' }}>
                     R$ {product.preco}
                   </div>
-                  {discount && <div style={{ fontSize: 10, color: '#8A9E7B', fontWeight: 600 }}>−{discount}% OFF</div>}
+                  {discount && <div style={{ fontSize: 10, color: '#6B7F63', fontWeight: 600 }}>−{discount}% OFF</div>}
                 </div>
 
-                <div style={{ fontSize: 12, color: '#C9826B', flexShrink: 0 }}>
+                <div style={{ fontSize: 12, color: '#2F4A3B', flexShrink: 0 }}>
                   {isMock ? 'Criar →' : 'Editar →'}
                 </div>
               </div>
