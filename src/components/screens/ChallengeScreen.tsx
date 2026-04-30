@@ -6,11 +6,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import DayDetail from '@/components/DayDetail'
 
-type Profile = { id: string; nome: string | null; peso_inicial: number | null; objetivo: string | null; sequencia_atual: number }
-type Enrollment = { id: string; start_date: string }
+type Profile      = { id: string; nome: string | null; peso_inicial: number | null; objetivo: string | null; sequencia_atual: number }
+type Desafio      = { id: string; titulo: string; descricao: string | null; duracao_dias: number; ordem: number; trilha_id: string }
+type TrilhaDesafio = Desafio & { status: 'completed' | 'active' | 'locked' }
+type UserDesafio  = { id: string; desafio_id: string; trilha_id: string; start_date: string; status: string }
+type Progress     = { day: number; completed: boolean }
+type Habits       = { agua: boolean; proteina: boolean; passos: boolean; treino: boolean }
 type HabitsYesterday = { agua: boolean; proteina: boolean; passos: boolean; treino: boolean } | null
-type Progress = { day: number; completed: boolean }
-type Habits = { agua: boolean; proteina: boolean; passos: boolean; treino: boolean }
 
 const HABITS_CONFIG: { id: keyof Habits; label: string; sub: string; icon: ReactNode }[] = [
   {
@@ -40,16 +42,19 @@ function Check() {
 }
 
 export default function ChallengeScreen() {
-  const [loading, setLoading]           = useState(true)
-  const [profile, setProfile]           = useState<Profile | null>(null)
-  const [enrollment, setEnrollment]     = useState<Enrollment | null>(null)
-  const [progress, setProgress]         = useState<Progress[]>([])
-  const [habits, setHabits]             = useState<Habits>({ agua: false, proteina: false, passos: false, treino: false })
+  const [loading, setLoading]             = useState(true)
+  const [profile, setProfile]             = useState<Profile | null>(null)
+  const [currentDesafio, setCurrentDesafio] = useState<Desafio | null>(null)
+  const [trilhaDesafios, setTrilhaDesafios] = useState<TrilhaDesafio[]>([])
+  const [userDesafio, setUserDesafio]     = useState<UserDesafio | null>(null)
+  const [progress, setProgress]           = useState<Progress[]>([])
+  const [habits, setHabits]               = useState<Habits>({ agua: false, proteina: false, passos: false, treino: false })
   const [currentWeight, setCurrentWeight] = useState<number | null>(null)
-  const [dayDetail, setDayDetail]       = useState<number | null>(null)
-  const [savingHabit, setSavingHabit]   = useState<string | null>(null)
-  const [mensagem, setMensagem]         = useState<string | null>(null)
+  const [dayDetail, setDayDetail]         = useState<number | null>(null)
+  const [savingHabit, setSavingHabit]     = useState<string | null>(null)
+  const [mensagem, setMensagem]           = useState<string | null>(null)
   const [mensagemLoading, setMensagemLoading] = useState(false)
+  const [unlocking, setUnlocking]         = useState(false)
 
   const supabase = createClient()
 
@@ -60,26 +65,67 @@ export default function ChallengeScreen() {
     const today     = new Date().toISOString().split('T')[0]
     const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
 
-    const [{ data: profileData }, { data: enrollmentData }, { data: progressData }, { data: habitsData }, { data: measureData }, { data: yesterdayHabitsData }] = await Promise.all([
+    // Load profile, measurements and habits in parallel
+    const [{ data: profileData }, { data: measureData }, { data: habitsData }, { data: yesterdayHabitsData }] = await Promise.all([
       supabase.from('profiles').select('id,nome,peso_inicial,objetivo,sequencia_atual').eq('id', user.id).single(),
-      supabase.from('challenge_enrollments').select('*').eq('user_id', user.id).maybeSingle(),
-      supabase.from('challenge_progress').select('day,completed').eq('user_id', user.id),
-      supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', today).maybeSingle(),
       supabase.from('measurements').select('peso').eq('user_id', user.id).order('date', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', today).maybeSingle(),
       supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', yesterday).maybeSingle(),
     ])
-    setProfile(profileData)
-    setProgress(progressData ?? [])
-    if (habitsData) setHabits({ agua: habitsData.agua, proteina: habitsData.proteina, passos: habitsData.passos, treino: habitsData.treino })
-    setCurrentWeight(measureData?.peso ?? null)
 
-    let finalEnrollment = enrollmentData
-    if (!enrollmentData) {
-      const { data: newEnrollment } = await supabase
-        .from('challenge_enrollments').insert({ user_id: user.id, start_date: today }).select().single()
-      finalEnrollment = newEnrollment
+    setProfile(profileData)
+    setCurrentWeight(measureData?.peso ?? null)
+    if (habitsData) setHabits({ agua: habitsData.agua, proteina: habitsData.proteina, passos: habitsData.passos, treino: habitsData.treino })
+
+    // ── Find or create active user_desafio ─────────────────────────
+    let activeUD: UserDesafio | null = null
+    const { data: existingUD } = await supabase
+      .from('user_desafios').select('*').eq('user_id', user.id).eq('status', 'active').maybeSingle()
+
+    if (existingUD) {
+      activeUD = existingUD
+    } else {
+      // Auto-enroll in first desafio of first active trilha
+      const { data: firstTrilha } = await supabase
+        .from('trilhas').select('id').eq('is_active', true).order('ordem').limit(1).maybeSingle()
+      if (firstTrilha) {
+        const { data: firstDesafio } = await supabase
+          .from('desafios').select('id,trilha_id').eq('trilha_id', firstTrilha.id).eq('is_active', true).order('ordem').limit(1).maybeSingle()
+        if (firstDesafio) {
+          const { data: newUD } = await supabase
+            .from('user_desafios')
+            .upsert({ user_id: user.id, desafio_id: firstDesafio.id, trilha_id: firstDesafio.trilha_id, start_date: today, status: 'active' }, { onConflict: 'user_id,desafio_id' })
+            .select().single()
+          activeUD = newUD
+        }
+      }
     }
-    if (finalEnrollment) setEnrollment(finalEnrollment)
+
+    if (!activeUD) { setLoading(false); return }
+    setUserDesafio(activeUD)
+
+    // ── Load desafio info + all desafios in trilha ─────────────────
+    const [{ data: desafioData }, { data: allDesafios }, { data: progressData }, { data: completedUDs }] = await Promise.all([
+      supabase.from('desafios').select('*').eq('id', activeUD.desafio_id).single(),
+      supabase.from('desafios').select('*').eq('trilha_id', activeUD.trilha_id).eq('is_active', true).order('ordem'),
+      supabase.from('desafio_day_progress').select('day,completed').eq('user_id', user.id).eq('desafio_id', activeUD.desafio_id),
+      supabase.from('user_desafios').select('desafio_id,status').eq('user_id', user.id),
+    ])
+
+    setCurrentDesafio(desafioData)
+    setProgress(progressData ?? [])
+
+    // Build trail strip with statuses
+    const completedIds = new Set((completedUDs ?? []).filter(u => u.status === 'completed').map(u => u.desafio_id))
+    const enriched: TrilhaDesafio[] = (allDesafios ?? []).map(d => ({
+      ...d,
+      status: d.id === activeUD!.desafio_id
+        ? 'active'
+        : completedIds.has(d.id)
+          ? 'completed'
+          : 'locked',
+    }))
+    setTrilhaDesafios(enriched)
     setLoading(false)
 
     // ── Mensagem diária personalizada ──────────────────────────────
@@ -90,35 +136,45 @@ export default function ChallengeScreen() {
     setMensagemLoading(true)
     try {
       const completedDays = (progressData ?? []).filter((p: Progress) => p.completed).length
-      const startDate     = finalEnrollment?.start_date ?? today
-      const currentDay    = Math.min(Math.max(1, Math.floor((Date.now() - new Date(startDate).getTime()) / 86400000) + 1), 21)
+      const currentDay    = desafioData
+        ? Math.min(Math.max(1, Math.floor((Date.now() - new Date(activeUD.start_date).getTime()) / 86400000) + 1), desafioData.duracao_dias)
+        : 1
       const yesterdayHabits: HabitsYesterday = yesterdayHabitsData
         ? { agua: yesterdayHabitsData.agua, proteina: yesterdayHabitsData.proteina, passos: yesterdayHabitsData.passos, treino: yesterdayHabitsData.treino }
         : null
-
-      const res  = await fetch('/api/mensagem-diaria', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({
-          nome:         profileData?.nome ?? null,
-          objetivo:     profileData?.objetivo ?? null,
-          streak:       profileData?.sequencia_atual ?? 0,
-          currentDay,
-          completedDays,
-          yesterdayHabits,
-        }),
+      const res = await fetch('/api/mensagem-diaria', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nome: profileData?.nome ?? null, objetivo: profileData?.objetivo ?? null, streak: profileData?.sequencia_atual ?? 0, currentDay, completedDays, yesterdayHabits }),
       })
       const { message } = await res.json()
-      if (message) {
-        setMensagem(message)
-        localStorage.setItem(cacheKey, message)
-      }
-    } catch { /* silently ignore */ } finally {
-      setMensagemLoading(false)
-    }
+      if (message) { setMensagem(message); localStorage.setItem(cacheKey, message) }
+    } catch { /* ignore */ } finally { setMensagemLoading(false) }
   }, [])
 
   useEffect(() => { loadData() }, [loadData])
+
+  // When a day is completed, refresh + check for desafio completion
+  const handleDayComplete = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user || !userDesafio || !currentDesafio) return
+    const { data: prog } = await supabase.from('desafio_day_progress').select('day,completed').eq('user_id', user.id).eq('desafio_id', currentDesafio.id)
+    setProgress(prog ?? [])
+
+    const completedCount = (prog ?? []).filter(p => p.completed).length
+    if (completedCount >= currentDesafio.duracao_dias) {
+      // Mark current desafio as completed
+      setUnlocking(true)
+      await supabase.from('user_desafios').update({ status: 'completed', completed_at: new Date().toISOString() }).eq('id', userDesafio.id)
+      // Find next desafio
+      const currentIdx = trilhaDesafios.findIndex(d => d.id === currentDesafio.id)
+      const nextDesafio = trilhaDesafios[currentIdx + 1]
+      if (nextDesafio) {
+        const today = new Date().toISOString().split('T')[0]
+        await supabase.from('user_desafios').upsert({ user_id: user.id, desafio_id: nextDesafio.id, trilha_id: nextDesafio.trilha_id, start_date: today, status: 'active' }, { onConflict: 'user_id,desafio_id' })
+      }
+      setTimeout(() => { setUnlocking(false); loadData() }, 1800)
+    }
+  }, [userDesafio, currentDesafio, trilhaDesafios, loadData])
 
   const toggleHabit = async (key: keyof Habits) => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -130,21 +186,23 @@ export default function ChallengeScreen() {
     setSavingHabit(null)
   }
 
-  const currentDay    = enrollment ? Math.min(Math.max(1, Math.floor((Date.now() - new Date(enrollment.start_date).getTime()) / 86400000) + 1), 21) : 1
+  // Derived values
+  const duracao      = currentDesafio?.duracao_dias ?? 21
+  const currentDay   = userDesafio ? Math.min(Math.max(1, Math.floor((Date.now() - new Date(userDesafio.start_date).getTime()) / 86400000) + 1), duracao) : 1
   const completedDays = progress.filter(p => p.completed).length
-  const progressPct   = (completedDays / 21) * 100
-  const semana        = Math.ceil(currentDay / 7)
-  const habitsDone    = Object.values(habits).filter(Boolean).length
-  const todayDone     = progress.find(p => p.day === currentDay)?.completed ?? false
-  const firstName     = profile?.nome?.split(' ')[0] ?? ''
-  const diasSeguidos  = profile?.sequencia_atual ?? 0
+  const progressPct  = duracao > 0 ? (completedDays / duracao) * 100 : 0
+  const habitsDone   = Object.values(habits).filter(Boolean).length
+  const todayDone    = progress.find(p => p.day === currentDay)?.completed ?? false
+  const firstName    = profile?.nome?.split(' ')[0] ?? ''
+  const diasSeguidos = profile?.sequencia_atual ?? 0
+  const pesoInicial  = profile?.peso_inicial ?? null
+  const pesoCurrent  = currentWeight ?? pesoInicial
+  const perdido      = pesoInicial && pesoCurrent ? +(pesoInicial - pesoCurrent).toFixed(1) : null
+  const semanas      = Math.ceil(duracao / 7)
+  const semana       = Math.ceil(currentDay / 7)
 
-  const pesoInicial = profile?.peso_inicial ?? null
-  const pesoCurrent = currentWeight ?? pesoInicial
-  const perdido     = pesoInicial && pesoCurrent ? +(pesoInicial - pesoCurrent).toFixed(1) : null
-
-  const days = Array.from({ length: 21 }, (_, i) => {
-    const day = i + 1
+  const days = Array.from({ length: duracao }, (_, i) => {
+    const day  = i + 1
     const prog = progress.find(p => p.day === day)
     return { day, done: prog?.completed ?? false, current: day === currentDay, locked: day > currentDay }
   })
@@ -166,7 +224,7 @@ export default function ChallengeScreen() {
       <div style={{ background: '#2F4A3B', padding: '20px 22px 28px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -50, top: -50, width: 200, height: 200, borderRadius: '50%', background: 'rgba(196,154,90,0.06)', pointerEvents: 'none' }} />
 
-        {/* Logo + avatar row */}
+        {/* Logo + avatar */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22, position: 'relative', zIndex: 1 }}>
           <Image src="/logo-viverbem-light.svg" alt="Viver Bem" width={160} height={152} style={{ height: 46, width: 'auto' }} priority />
           <Link href="/perfil" style={{ textDecoration: 'none' }}>
@@ -185,33 +243,28 @@ export default function ChallengeScreen() {
           </div>
         )}
 
-        {/* Title + week */}
+        {/* Desafio title */}
         <div style={{ fontFamily: "'Cinzel',serif", fontSize: 20, fontWeight: 600, color: '#FAF7F2', marginBottom: 2 }}>
-          Desafio 21 Dias
+          {currentDesafio?.titulo ?? 'Desafio'}
         </div>
         <div style={{ fontSize: 12, color: 'rgba(250,247,242,0.45)', marginBottom: 24 }}>
-          Semana {semana} de 3
+          Semana {semana} de {semanas}
         </div>
 
-        {/* Big day display */}
+        {/* Day number */}
         <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, marginBottom: 14 }}>
           <span style={{ fontFamily: "'Cinzel',serif", fontSize: 56, fontWeight: 700, color: '#FAF7F2', lineHeight: 1 }}>
             {currentDay}
           </span>
           <span style={{ fontSize: 14, color: 'rgba(250,247,242,0.45)', marginBottom: 8 }}>
-            de 21
+            de {duracao}
           </span>
         </div>
 
         {/* Progress bar */}
         <div style={{ marginBottom: 6 }}>
           <div style={{ height: 6, background: 'rgba(250,247,242,0.12)', borderRadius: 100 }}>
-            <div style={{
-              width: `${progressPct}%`, height: '100%',
-              background: '#C49A5A', borderRadius: 100,
-              transition: 'width 700ms cubic-bezier(0.22,1,0.36,1)',
-              minWidth: completedDays > 0 ? 12 : 0,
-            }} />
+            <div style={{ width: `${progressPct}%`, height: '100%', background: '#C49A5A', borderRadius: 100, transition: 'width 700ms cubic-bezier(0.22,1,0.36,1)', minWidth: completedDays > 0 ? 12 : 0 }} />
           </div>
         </div>
         <div style={{ fontSize: 12, color: 'rgba(250,247,242,0.45)' }}>
@@ -237,35 +290,59 @@ export default function ChallengeScreen() {
         </div>
       </div>
 
+      {/* ── TRILHA STRIP ────────────────────────────────────────── */}
+      {trilhaDesafios.length > 1 && (
+        <div style={{ background: '#FAF7F2', borderBottom: '1px solid #EBE0CF', padding: '12px 20px', overflowX: 'auto' }}>
+          <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 10 }}>
+            Sua trilha
+          </div>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', minWidth: 'max-content' }}>
+            {trilhaDesafios.map((d, i) => (
+              <div key={d.id} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <div style={{
+                  borderRadius: 100, padding: '6px 14px', fontSize: 12, fontWeight: 600,
+                  display: 'flex', alignItems: 'center', gap: 6, whiteSpace: 'nowrap',
+                  background: d.status === 'active' ? '#2F4A3B' : d.status === 'completed' ? '#D4E3D8' : '#F3E9DC',
+                  color: d.status === 'active' ? '#FAF7F2' : d.status === 'completed' ? '#2F4A3B' : '#C8BEAE',
+                  border: d.status === 'active' ? 'none' : d.status === 'completed' ? '1.5px solid #9DB09A' : '1.5px dashed #DDD5C5',
+                }}>
+                  {d.status === 'completed' && <span style={{ fontSize: 11 }}>✓</span>}
+                  {d.status === 'locked' && <span style={{ fontSize: 11 }}>🔒</span>}
+                  {d.status === 'active' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', display: 'inline-block' }} />}
+                  <span>{d.titulo}</span>
+                </div>
+                {i < trilhaDesafios.length - 1 && (
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C8BEAE" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── DESAFIO CONCLUÍDO — DESBLOQUEIO ─────────────────────── */}
+      {unlocking && (
+        <div style={{ margin: '18px 20px 0', background: '#2F4A3B', borderRadius: 18, padding: '20px 22px', textAlign: 'center', boxShadow: '0 4px 20px rgba(47,74,59,0.25)' }}>
+          <div style={{ fontSize: 32, marginBottom: 8 }}>🎉</div>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 17, fontWeight: 600, color: '#FAF7F2', marginBottom: 4 }}>Desafio concluído!</div>
+          <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.55)' }}>Próximo desafio desbloqueado…</div>
+        </div>
+      )}
+
       {/* ── MENSAGEM DIÁRIA ─────────────────────────────────────── */}
       {(mensagem || mensagemLoading) && (
         <div style={{ padding: '18px 20px 0' }}>
-          <div style={{
-            background: '#FAF7F2',
-            borderRadius: 18,
-            padding: '16px 18px',
-            boxShadow: '0 2px 12px rgba(47,74,59,0.07)',
-            borderLeft: '3px solid #C49A5A',
-            display: 'flex',
-            gap: 13,
-            alignItems: 'flex-start',
-          }}>
+          <div style={{ background: '#FAF7F2', borderRadius: 18, padding: '16px 18px', boxShadow: '0 2px 12px rgba(47,74,59,0.07)', borderLeft: '3px solid #C49A5A', display: 'flex', gap: 13, alignItems: 'flex-start' }}>
             <div style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>🌿</div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>
-                Mensagem do dia
-              </div>
+              <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>Mensagem do dia</div>
               {mensagemLoading && !mensagem ? (
                 <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: 'pulse 1.2s ease-in-out infinite' }} />
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: 'pulse 1.2s ease-in-out 0.2s infinite' }} />
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: 'pulse 1.2s ease-in-out 0.4s infinite' }} />
+                  {[0, 0.2, 0.4].map((d, i) => <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: `pulse 1.2s ease-in-out ${d}s infinite` }} />)}
                   <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:0.8}}`}</style>
                 </div>
               ) : (
-                <div style={{ fontSize: 13, color: '#3D5240', lineHeight: 1.6, fontStyle: 'italic' }}>
-                  {mensagem}
-                </div>
+                <div style={{ fontSize: 13, color: '#3D5240', lineHeight: 1.6, fontStyle: 'italic' }}>{mensagem}</div>
               )}
             </div>
           </div>
@@ -275,20 +352,8 @@ export default function ChallengeScreen() {
       {/* ── CTA DO DIA ──────────────────────────────────────────── */}
       <div style={{ padding: '18px 20px 0' }}>
         <button onClick={() => setDayDetail(currentDay)} style={{ width: '100%', background: 'none', border: 'none', padding: 0, cursor: 'pointer', textAlign: 'left' }}>
-          <div style={{
-            background: todayDone ? '#EBF0E8' : '#FAF7F2',
-            borderRadius: 18,
-            padding: '18px 20px',
-            display: 'flex', alignItems: 'center', gap: 16,
-            boxShadow: '0 2px 12px rgba(47,74,59,0.08)',
-            border: todayDone ? '1.5px solid #C3D4BC' : '1.5px solid #EBE0CF',
-          }}>
-            {/* Day badge */}
-            <div style={{
-              width: 52, height: 52, borderRadius: 16, flexShrink: 0,
-              background: todayDone ? '#6B7F63' : '#2F4A3B',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            }}>
+          <div style={{ background: todayDone ? '#EBF0E8' : '#FAF7F2', borderRadius: 18, padding: '18px 20px', display: 'flex', alignItems: 'center', gap: 16, boxShadow: '0 2px 12px rgba(47,74,59,0.08)', border: todayDone ? '1.5px solid #C3D4BC' : '1.5px solid #EBE0CF' }}>
+            <div style={{ width: 52, height: 52, borderRadius: 16, flexShrink: 0, background: todayDone ? '#6B7F63' : '#2F4A3B', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
               {todayDone ? (
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
               ) : (
@@ -306,9 +371,7 @@ export default function ChallengeScreen() {
                 {todayDone ? 'Você arrasou hoje 🌿' : 'Aula, missões e dica do dia'}
               </div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C49A5A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6"/>
-            </svg>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#C49A5A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </div>
         </button>
       </div>
@@ -324,35 +387,15 @@ export default function ChallengeScreen() {
         {HABITS_CONFIG.map((h, i) => {
           const done = habits[h.id]
           return (
-            <div key={h.id} onClick={() => toggleHabit(h.id)} style={{
-              display: 'flex', alignItems: 'center', gap: 14,
-              padding: '13px 18px',
-              borderBottom: i < 3 ? '1px solid #F5EFE6' : 'none',
-              cursor: 'pointer',
-              opacity: savingHabit === h.id ? 0.6 : 1,
-              transition: 'opacity 150ms',
-              userSelect: 'none',
-            }}>
-              <div style={{
-                width: 38, height: 38, borderRadius: 12, flexShrink: 0,
-                background: done ? '#2F4A3B' : '#F3E9DC',
-                color: done ? '#C49A5A' : '#9DB09A',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 200ms',
-              }}>
+            <div key={h.id} onClick={() => toggleHabit(h.id)} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '13px 18px', borderBottom: i < 3 ? '1px solid #F5EFE6' : 'none', cursor: 'pointer', opacity: savingHabit === h.id ? 0.6 : 1, transition: 'opacity 150ms', userSelect: 'none' }}>
+              <div style={{ width: 38, height: 38, borderRadius: 12, flexShrink: 0, background: done ? '#2F4A3B' : '#F3E9DC', color: done ? '#C49A5A' : '#9DB09A', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 200ms' }}>
                 {h.icon}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 14, fontWeight: done ? 600 : 400, color: done ? '#2F4A3B' : '#4A5E4C', marginBottom: 1 }}>{h.label}</div>
                 <div style={{ fontSize: 11, color: '#9DB09A' }}>{h.sub}</div>
               </div>
-              <div style={{
-                width: 24, height: 24, borderRadius: '50%', flexShrink: 0,
-                background: done ? '#2F4A3B' : 'transparent',
-                border: done ? 'none' : '1.5px solid #DDD5C5',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                transition: 'all 200ms',
-              }}>
+              <div style={{ width: 24, height: 24, borderRadius: '50%', flexShrink: 0, background: done ? '#2F4A3B' : 'transparent', border: done ? 'none' : '1.5px solid #DDD5C5', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 200ms' }}>
                 {done && <Check />}
               </div>
             </div>
@@ -365,21 +408,14 @@ export default function ChallengeScreen() {
         <div style={{ fontFamily: "'Cinzel',serif", fontSize: 13, fontWeight: 600, color: '#2F4A3B', letterSpacing: '0.04em', marginBottom: 14 }}>
           Todos os dias
         </div>
-        {[0, 1, 2].map(week => (
-          <div key={week} style={{ marginBottom: week < 2 ? 12 : 0 }}>
+        {Array.from({ length: semanas }, (_, week) => (
+          <div key={week} style={{ marginBottom: week < semanas - 1 ? 12 : 0 }}>
             <div style={{ fontSize: 9, color: '#C8BEAE', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
               Semana {week + 1}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)', gap: 5 }}>
               {days.slice(week * 7, week * 7 + 7).map(d => (
-                <div key={d.day} onClick={() => !d.locked && setDayDetail(d.day)} style={{
-                  aspectRatio: '1', borderRadius: 10,
-                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                  cursor: d.locked ? 'default' : 'pointer',
-                  background: d.current ? '#2F4A3B' : d.done ? '#D4E3D8' : d.locked ? 'transparent' : '#F3E9DC',
-                  border: d.locked ? '1px dashed #E0D5C5' : 'none',
-                  position: 'relative',
-                }}>
+                <div key={d.day} onClick={() => !d.locked && setDayDetail(d.day)} style={{ aspectRatio: '1', borderRadius: 10, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: d.locked ? 'default' : 'pointer', background: d.current ? '#2F4A3B' : d.done ? '#D4E3D8' : d.locked ? 'transparent' : '#F3E9DC', border: d.locked ? '1px dashed #E0D5C5' : 'none', position: 'relative' }}>
                   {d.done && !d.current ? (
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#6B7F63" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                   ) : (
@@ -395,7 +431,16 @@ export default function ChallengeScreen() {
         ))}
       </div>
 
-      {dayDetail && <DayDetail day={dayDetail} onClose={() => { setDayDetail(null); loadData() }} />}
+      {dayDetail && currentDesafio && (
+        <DayDetail
+          day={dayDetail}
+          desafioId={currentDesafio.id}
+          desafioTitulo={currentDesafio.titulo}
+          duracao={currentDesafio.duracao_dias}
+          onClose={() => { setDayDetail(null); loadData() }}
+          onComplete={handleDayComplete}
+        />
+      )}
     </div>
   )
 }

@@ -3,14 +3,21 @@
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
-type ChallengeDay = {
+type DiaContent = {
   day: number; titulo: string; descricao: string | null
   video_url: string | null; duracao_min: number | null
   tipo: string | null; dica: string | null
 }
 type Habits = { agua: boolean; proteina: boolean; passos: boolean; treino: boolean }
 
-interface Props { day: number; onClose: () => void }
+interface Props {
+  day: number
+  desafioId: string
+  desafioTitulo?: string
+  duracao?: number
+  onClose: () => void
+  onComplete?: () => void
+}
 
 function getEmbedUrl(url: string | null): string | null {
   if (!url) return null
@@ -31,9 +38,9 @@ const TASKS = [
   { id: 'treino'   as const, label: 'Treino concluído',          emoji: '🏋️' },
 ]
 
-export default function DayDetail({ day, onClose }: Props) {
+export default function DayDetail({ day, desafioId, desafioTitulo, duracao = 21, onClose, onComplete }: Props) {
   const [loading, setLoading]       = useState(true)
-  const [dayContent, setDayContent] = useState<ChallengeDay | null>(null)
+  const [dayContent, setDayContent] = useState<DiaContent | null>(null)
   const [completed, setCompleted]   = useState(false)
   const [habits, setHabits]         = useState<Habits>({ agua: false, proteina: false, passos: false, treino: false })
   const [anotacao, setAnotacao]     = useState('')
@@ -48,8 +55,9 @@ export default function DayDetail({ day, onClose }: Props) {
 
     const today = new Date().toISOString().split('T')[0]
     const [{ data: content }, { data: prog }, { data: habitsData }] = await Promise.all([
-      supabase.from('challenge_days').select('*').eq('day', day).maybeSingle(),
-      supabase.from('challenge_progress').select('completed,anotacao').eq('user_id', user.id).eq('day', day).maybeSingle(),
+      // Try new desafio_dias table first
+      supabase.from('desafio_dias').select('*').eq('desafio_id', desafioId).eq('day', day).maybeSingle(),
+      supabase.from('desafio_day_progress').select('completed,anotacao').eq('user_id', user.id).eq('desafio_id', desafioId).eq('day', day).maybeSingle(),
       supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', today).maybeSingle(),
     ])
 
@@ -57,7 +65,7 @@ export default function DayDetail({ day, onClose }: Props) {
     if (prog) { setCompleted(prog.completed); setAnotacao(prog.anotacao ?? '') }
     if (habitsData) setHabits({ agua: habitsData.agua, proteina: habitsData.proteina, passos: habitsData.passos, treino: habitsData.treino })
     setLoading(false)
-  }, [day])
+  }, [day, desafioId])
 
   useEffect(() => { loadData() }, [loadData])
 
@@ -77,13 +85,15 @@ export default function DayDetail({ day, onClose }: Props) {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    await supabase.from('challenge_progress').upsert(
-      { user_id: user.id, day, completed: true, completed_at: new Date().toISOString(), anotacao: anotacao || null },
-      { onConflict: 'user_id,day' }
+
+    await supabase.from('desafio_day_progress').upsert(
+      { user_id: user.id, desafio_id: desafioId, day, completed: true, completed_at: new Date().toISOString(), anotacao: anotacao || null },
+      { onConflict: 'user_id,desafio_id,day' }
     )
     setCompleted(true)
     setSaving(false)
     setSaved(true)
+    onComplete?.()
   }
 
   const embedUrl = getEmbedUrl(dayContent?.video_url ?? null)
@@ -98,7 +108,8 @@ export default function DayDetail({ day, onClose }: Props) {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
         </button>
         <div style={{ fontSize: 10, color: 'rgba(253,248,243,0.7)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: 4 }}>
-          Dia {day} de 21{dayContent?.tipo ? ` · ${TIPO_LABEL[dayContent.tipo] ?? dayContent.tipo}` : ''}
+          {desafioTitulo ?? 'Desafio'} · Dia {day} de {duracao}
+          {dayContent?.tipo ? ` · ${TIPO_LABEL[dayContent.tipo] ?? dayContent.tipo}` : ''}
         </div>
         <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', lineHeight: 1.2 }}>
           {loading ? '…' : (dayContent?.titulo ?? `Dia ${day}`)}
@@ -169,7 +180,7 @@ export default function DayDetail({ day, onClose }: Props) {
                     {done ? <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#FAF7F2" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                       : <span style={{ fontSize: 12 }}>{t.emoji}</span>}
                   </div>
-                  <span style={{ fontSize: 13, color: done ? '#2F4A3B' : '#2F4A3B', fontWeight: done ? 500 : 400, flex: 1 }}>{t.label}</span>
+                  <span style={{ fontSize: 13, color: '#2F4A3B', fontWeight: done ? 500 : 400, flex: 1 }}>{t.label}</span>
                   {done && <span style={{ fontSize: 11, color: '#2F4A3B' }}>✓</span>}
                 </div>
               )
