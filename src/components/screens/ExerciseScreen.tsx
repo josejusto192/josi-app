@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 
 const MUSCLE_GROUPS = [
   {
@@ -71,7 +70,7 @@ const TYPE_COLOR: Record<string, { bg: string; c: string }> = {
   aparelho: { bg: '#D6E4CE', c: '#3A5A42' },
 }
 
-export default function ExerciseScreen() {
+export default function ExerciseScreen({ embedded = false }: { embedded?: boolean }) {
   const [selected, setSelected] = useState<string | null>(null)
   const [filter, setFilter]     = useState('todos')
 
@@ -85,7 +84,7 @@ export default function ExerciseScreen() {
   /* ── Exercise list view ── */
   if (selected) {
     return (
-      <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
+      <div style={{ overflowY: embedded ? 'visible' : 'auto', background: '#F3E9DC' }}>
 
         {/* Sub-header */}
         <div style={{ background: '#FAF7F2', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid #EBE0CF' }}>
@@ -139,23 +138,25 @@ export default function ExerciseScreen() {
 
   /* ── Muscle group grid ── */
   return (
-    <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
+    <div style={{ overflowY: embedded ? 'visible' : 'auto', background: embedded ? 'transparent' : '#F3E9DC' }}>
 
-      {/* Hero banner */}
-      <div style={{ background: '#2F4A3B', padding: '20px 22px 24px', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', right: -30, bottom: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(196,154,90,0.07)', pointerEvents: 'none' }} />
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
-          <div style={{ fontSize: 11, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Academia em casa</div>
-          <Link href="/perfil" style={{ textDecoration: 'none', width: 30, height: 30, borderRadius: '50%', background: 'rgba(250,247,242,0.10)', border: '1px solid rgba(196,154,90,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,90,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </Link>
+      {/* Hero banner — only shown standalone */}
+      {!embedded && (
+        <div style={{ background: '#2F4A3B', padding: '20px 22px 24px', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', right: -30, bottom: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(196,154,90,0.07)', pointerEvents: 'none' }} />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative', zIndex: 1 }}>
+            <div style={{ fontSize: 11, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 600 }}>Academia em casa</div>
+            <a href="/perfil" style={{ textDecoration: 'none', width: 30, height: 30, borderRadius: '50%', background: 'rgba(250,247,242,0.10)', border: '1px solid rgba(196,154,90,0.35)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,90,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </a>
+          </div>
+          <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4, position: 'relative', zIndex: 1 }}>Exercícios</div>
+          <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)', position: 'relative', zIndex: 1 }}>Escolha o grupo muscular para treinar</div>
         </div>
-        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4, position: 'relative', zIndex: 1 }}>Exercícios</div>
-        <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)', position: 'relative', zIndex: 1 }}>Escolha o grupo muscular para treinar</div>
-      </div>
+      )}
 
       {/* Grid */}
-      <div style={{ padding: '16px 20px 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+      <div style={{ padding: embedded ? '12px 20px 24px' : '16px 20px 32px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
         {MUSCLE_GROUPS.map(g => (
           <div
             key={g.id}

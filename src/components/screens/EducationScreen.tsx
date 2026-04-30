@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import CourseDetail from '@/components/education/CourseDetail'
+import ExerciseScreen from '@/components/screens/ExerciseScreen'
 
 type Lesson = { id: string; titulo: string; tipo: string; duracao_min: number | null; ordem: number; is_premium: boolean; module_id: string }
 type Module = { id: string; titulo: string; ordem: number; lessons?: Lesson[] }
@@ -29,10 +30,11 @@ export const CAT_LABEL: Record<string, string> = {
 }
 
 export default function EducationScreen() {
-  const [courses, setCourses]     = useState<CourseType[]>([])
-  const [loading, setLoading]     = useState(true)
+  const [activeTab, setActiveTab]   = useState<'cursos' | 'exercicios'>('cursos')
+  const [courses, setCourses]       = useState<CourseType[]>([])
+  const [loading, setLoading]       = useState(true)
   const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
-  const [userId, setUserId]       = useState<string | null>(null)
+  const [userId, setUserId]         = useState<string | null>(null)
 
   useEffect(() => {
     const load = async () => {
@@ -90,6 +92,7 @@ export default function EducationScreen() {
 
   return (
     <div style={{ flex: 1, overflowY: 'auto', background: '#F3E9DC' }}>
+
       {/* Hero banner */}
       <div style={{ background: '#2F4A3B', padding: '20px 22px 24px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: -30, bottom: -30, width: 150, height: 150, borderRadius: '50%', background: 'rgba(196,154,90,0.07)', pointerEvents: 'none' }} />
@@ -99,93 +102,141 @@ export default function EducationScreen() {
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(196,154,90,0.8)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </a>
         </div>
-        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4, position: 'relative', zIndex: 1 }}>Educação</div>
-        <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)', position: 'relative', zIndex: 1 }}>Cursos e aulas para a sua jornada</div>
+        <div style={{ fontFamily: "'Cinzel',serif", fontSize: 22, fontWeight: 600, color: '#FAF7F2', marginBottom: 4, position: 'relative', zIndex: 1 }}>Materiais</div>
+        <div style={{ fontSize: 13, color: 'rgba(250,247,242,0.45)', position: 'relative', zIndex: 1 }}>Cursos e exercícios para a sua jornada</div>
       </div>
 
-      <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 48, color: '#9DB09A', fontSize: 13 }}>Carregando cursos…</div>
-        ) : courses.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: 48 }}>
-            <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, color: '#2F4A3B' }}>Nenhum curso disponível</div>
-            <div style={{ fontSize: 13, color: '#9DB09A', marginTop: 6 }}>Em breve novos conteúdos</div>
-          </div>
-        ) : courses.map(course => {
-          const pct = course.totalLessons ? Math.round(((course.completedLessons ?? 0) / course.totalLessons) * 100) : 0
-          const done = pct === 100
-          const CAT_SOLID: Record<string, string> = {
-            nutricao: '#2F4A3B', mentalidade: '#4A5A3B', receitas: '#5A4A2A',
-            treino: '#2A3A5A', saude: '#4A3A2A', beleza: '#4A2A3A',
-          }
-          const bg = CAT_SOLID[course.categoria] ?? '#2F4A3B'
-          const totalMin = (course.modules ?? []).flatMap(m => m.lessons ?? []).reduce((s, l) => s + (l.duracao_min ?? 0), 0)
-          const h = Math.floor(totalMin / 60), min = totalMin % 60
-          const durStr = totalMin > 0 ? (h > 0 ? `${h}h${min > 0 ? min + 'min' : ''}` : `${min}min`) : ''
+      {/* Sub-tabs */}
+      <div style={{ background: '#FAF7F2', borderBottom: '1px solid #EBE0CF', display: 'flex' }}>
+        {(['cursos', 'exercicios'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            style={{
+              flex: 1,
+              padding: '14px 0',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === tab ? '2.5px solid #2F4A3B' : '2.5px solid transparent',
+              color: activeTab === tab ? '#2F4A3B' : '#9DB09A',
+              fontWeight: activeTab === tab ? 700 : 400,
+              fontSize: 13,
+              cursor: 'pointer',
+              fontFamily: "'Lato', sans-serif",
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 7,
+              transition: 'color 150ms, border-color 150ms',
+            }}
+          >
+            {tab === 'cursos' ? (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                Cursos
+              </>
+            ) : (
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6.5 6.5h11"/><path d="M6.5 17.5h11"/><path d="M3 9.5h3v5H3z"/><path d="M18 9.5h3v5h-3z"/>
+                </svg>
+                Exercícios
+              </>
+            )}
+          </button>
+        ))}
+      </div>
 
-          return (
-            <div key={course.id} onClick={() => setSelectedCourse(course)}
-              style={{ background: '#FAF7F2', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 12px rgba(47,74,59,0.08)', cursor: 'pointer', border: done ? '1.5px solid #6B7F63' : '1.5px solid transparent' }}>
+      {/* Content */}
+      {activeTab === 'cursos' ? (
+        <div style={{ padding: '16px 20px 32px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: 48, color: '#9DB09A', fontSize: 13 }}>Carregando cursos…</div>
+          ) : courses.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: 48 }}>
+              <div style={{ fontFamily: "'Cinzel',serif", fontSize: 16, color: '#2F4A3B' }}>Nenhum curso disponível</div>
+              <div style={{ fontSize: 13, color: '#9DB09A', marginTop: 6 }}>Em breve novos conteúdos</div>
+            </div>
+          ) : courses.map(course => {
+            const pct = course.totalLessons ? Math.round(((course.completedLessons ?? 0) / course.totalLessons) * 100) : 0
+            const done = pct === 100
+            const CAT_SOLID: Record<string, string> = {
+              nutricao: '#2F4A3B', mentalidade: '#4A5A3B', receitas: '#5A4A2A',
+              treino: '#2A3A5A', saude: '#4A3A2A', beleza: '#4A2A3A',
+            }
+            const bg = CAT_SOLID[course.categoria] ?? '#2F4A3B'
+            const totalMin = (course.modules ?? []).flatMap(m => m.lessons ?? []).reduce((s, l) => s + (l.duracao_min ?? 0), 0)
+            const h = Math.floor(totalMin / 60), min = totalMin % 60
+            const durStr = totalMin > 0 ? (h > 0 ? `${h}h${min > 0 ? min + 'min' : ''}` : `${min}min`) : ''
 
-              {/* Banner */}
-              <div style={{ background: bg, padding: '18px 20px 20px', position: 'relative', overflow: 'hidden' }}>
-                <div style={{ position: 'absolute', right: -20, bottom: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(196,154,90,0.10)' }} />
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
-                  <div>
-                    <div style={{ fontSize: 9, color: 'rgba(250,247,242,0.55)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
-                      {CAT_LABEL[course.categoria]}
+            return (
+              <div key={course.id} onClick={() => setSelectedCourse(course)}
+                style={{ background: '#FAF7F2', borderRadius: 18, overflow: 'hidden', boxShadow: '0 2px 12px rgba(47,74,59,0.08)', cursor: 'pointer', border: done ? '1.5px solid #6B7F63' : '1.5px solid transparent' }}>
+
+                {/* Banner */}
+                <div style={{ background: bg, padding: '18px 20px 20px', position: 'relative', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', right: -20, bottom: -20, width: 100, height: 100, borderRadius: '50%', background: 'rgba(196,154,90,0.10)' }} />
+                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative', zIndex: 1 }}>
+                    <div>
+                      <div style={{ fontSize: 9, color: 'rgba(250,247,242,0.55)', letterSpacing: '0.10em', textTransform: 'uppercase', marginBottom: 6, fontWeight: 600 }}>
+                        {CAT_LABEL[course.categoria]}
+                      </div>
+                      <div style={{ fontFamily: "'Cinzel',serif", fontSize: 17, fontWeight: 600, color: '#FAF7F2', lineHeight: 1.25, maxWidth: '80%' }}>
+                        {course.titulo}
+                      </div>
                     </div>
-                    <div style={{ fontFamily: "'Cinzel',serif", fontSize: 17, fontWeight: 600, color: '#FAF7F2', lineHeight: 1.25, maxWidth: '80%' }}>
-                      {course.titulo}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
+                      {course.is_premium && (
+                        <div style={{ background: 'rgba(196,154,90,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 9, fontWeight: 700, color: '#C49A5A', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>✦ PREMIUM</div>
+                      )}
+                      {done && (
+                        <div style={{ background: 'rgba(250,247,242,0.15)', borderRadius: 100, padding: '3px 10px', fontSize: 9, fontWeight: 700, color: '#FAF7F2', whiteSpace: 'nowrap' }}>✓ Concluído</div>
+                      )}
                     </div>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-end' }}>
-                    {course.is_premium && (
-                      <div style={{ background: 'rgba(196,154,90,0.25)', borderRadius: 100, padding: '3px 10px', fontSize: 9, fontWeight: 700, color: '#C49A5A', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}>✦ PREMIUM</div>
-                    )}
-                    {done && (
-                      <div style={{ background: 'rgba(250,247,242,0.15)', borderRadius: 100, padding: '3px 10px', fontSize: 9, fontWeight: 700, color: '#FAF7F2', whiteSpace: 'nowrap' }}>✓ Concluído</div>
-                    )}
                   </div>
                 </div>
-              </div>
 
-              {/* Info row */}
-              <div style={{ padding: '12px 18px 14px' }}>
-                {course.descricao && (
-                  <div style={{ fontSize: 12, color: '#6B7F63', lineHeight: 1.55, marginBottom: 10 }}>
-                    {course.descricao.length > 90 ? course.descricao.slice(0, 90) + '…' : course.descricao}
-                  </div>
-                )}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                    {course.totalLessons ? (
-                      <span style={{ fontSize: 11, color: '#9DB09A' }}>{course.totalLessons} aulas</span>
-                    ) : null}
-                    {durStr && <span style={{ fontSize: 11, color: '#9DB09A' }}>· {durStr}</span>}
-                    {(course.modules ?? []).length > 0 && (
-                      <span style={{ fontSize: 11, color: '#9DB09A' }}>· {(course.modules ?? []).length} módulos</span>
+                {/* Info row */}
+                <div style={{ padding: '12px 18px 14px' }}>
+                  {course.descricao && (
+                    <div style={{ fontSize: 12, color: '#6B7F63', lineHeight: 1.55, marginBottom: 10 }}>
+                      {course.descricao.length > 90 ? course.descricao.slice(0, 90) + '…' : course.descricao}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                      {course.totalLessons ? (
+                        <span style={{ fontSize: 11, color: '#9DB09A' }}>{course.totalLessons} aulas</span>
+                      ) : null}
+                      {durStr && <span style={{ fontSize: 11, color: '#9DB09A' }}>· {durStr}</span>}
+                      {(course.modules ?? []).length > 0 && (
+                        <span style={{ fontSize: 11, color: '#9DB09A' }}>· {(course.modules ?? []).length} módulos</span>
+                      )}
+                    </div>
+                    {pct > 0 && (
+                      <span style={{ fontSize: 12, fontWeight: 700, color: done ? '#6B7F63' : '#C49A5A' }}>{pct}%</span>
                     )}
                   </div>
-                  {pct > 0 && (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: done ? '#6B7F63' : '#C49A5A' }}>{pct}%</span>
+                  {pct > 0 ? (
+                    <div style={{ height: 3, background: '#EBE0CF', borderRadius: 100, marginTop: 8 }}>
+                      <div style={{ width: `${pct}%`, height: '100%', background: done ? '#6B7F63' : '#C49A5A', borderRadius: 100, transition: 'width 600ms ease' }} />
+                    </div>
+                  ) : (
+                    <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: '#2F4A3B' }}>Começar</span>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C49A5A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </div>
                   )}
                 </div>
-                {pct > 0 ? (
-                  <div style={{ height: 3, background: '#EBE0CF', borderRadius: 100, marginTop: 8 }}>
-                    <div style={{ width: `${pct}%`, height: '100%', background: done ? '#6B7F63' : '#C49A5A', borderRadius: 100, transition: 'width 600ms ease' }} />
-                  </div>
-                ) : (
-                  <div style={{ marginTop: 8, display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: '#2F4A3B' }}>Começar</span>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#C49A5A" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-                  </div>
-                )}
               </div>
-            </div>
-          )
-        })}
-      </div>
+            )
+          })}
+        </div>
+      ) : (
+        <ExerciseScreen embedded />
+      )}
     </div>
   )
 }
