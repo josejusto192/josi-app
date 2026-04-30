@@ -8,6 +8,7 @@ import DayDetail from '@/components/DayDetail'
 
 type Profile = { id: string; nome: string | null; peso_inicial: number | null; objetivo: string | null; sequencia_atual: number }
 type Enrollment = { id: string; start_date: string }
+type HabitsYesterday = { agua: boolean; proteina: boolean; passos: boolean; treino: boolean } | null
 type Progress = { day: number; completed: boolean }
 type Habits = { agua: boolean; proteina: boolean; passos: boolean; treino: boolean }
 
@@ -39,39 +40,82 @@ function Check() {
 }
 
 export default function ChallengeScreen() {
-  const [loading, setLoading]       = useState(true)
-  const [profile, setProfile]       = useState<Profile | null>(null)
-  const [enrollment, setEnrollment] = useState<Enrollment | null>(null)
-  const [progress, setProgress]     = useState<Progress[]>([])
-  const [habits, setHabits]         = useState<Habits>({ agua: false, proteina: false, passos: false, treino: false })
+  const [loading, setLoading]           = useState(true)
+  const [profile, setProfile]           = useState<Profile | null>(null)
+  const [enrollment, setEnrollment]     = useState<Enrollment | null>(null)
+  const [progress, setProgress]         = useState<Progress[]>([])
+  const [habits, setHabits]             = useState<Habits>({ agua: false, proteina: false, passos: false, treino: false })
   const [currentWeight, setCurrentWeight] = useState<number | null>(null)
-  const [dayDetail, setDayDetail]   = useState<number | null>(null)
-  const [savingHabit, setSavingHabit] = useState<string | null>(null)
+  const [dayDetail, setDayDetail]       = useState<number | null>(null)
+  const [savingHabit, setSavingHabit]   = useState<string | null>(null)
+  const [mensagem, setMensagem]         = useState<string | null>(null)
+  const [mensagemLoading, setMensagemLoading] = useState(false)
 
   const supabase = createClient()
 
   const loadData = useCallback(async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const [{ data: profileData }, { data: enrollmentData }, { data: progressData }, { data: habitsData }, { data: measureData }] = await Promise.all([
+
+    const today     = new Date().toISOString().split('T')[0]
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0]
+
+    const [{ data: profileData }, { data: enrollmentData }, { data: progressData }, { data: habitsData }, { data: measureData }, { data: yesterdayHabitsData }] = await Promise.all([
       supabase.from('profiles').select('id,nome,peso_inicial,objetivo,sequencia_atual').eq('id', user.id).single(),
       supabase.from('challenge_enrollments').select('*').eq('user_id', user.id).maybeSingle(),
       supabase.from('challenge_progress').select('day,completed').eq('user_id', user.id),
-      supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', new Date().toISOString().split('T')[0]).maybeSingle(),
+      supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', today).maybeSingle(),
       supabase.from('measurements').select('peso').eq('user_id', user.id).order('date', { ascending: false }).limit(1).maybeSingle(),
+      supabase.from('habits_log').select('agua,proteina,passos,treino').eq('user_id', user.id).eq('date', yesterday).maybeSingle(),
     ])
     setProfile(profileData)
     setProgress(progressData ?? [])
     if (habitsData) setHabits({ agua: habitsData.agua, proteina: habitsData.proteina, passos: habitsData.passos, treino: habitsData.treino })
     setCurrentWeight(measureData?.peso ?? null)
-    if (enrollmentData) {
-      setEnrollment(enrollmentData)
-    } else {
+
+    let finalEnrollment = enrollmentData
+    if (!enrollmentData) {
       const { data: newEnrollment } = await supabase
-        .from('challenge_enrollments').insert({ user_id: user.id, start_date: new Date().toISOString().split('T')[0] }).select().single()
-      setEnrollment(newEnrollment)
+        .from('challenge_enrollments').insert({ user_id: user.id, start_date: today }).select().single()
+      finalEnrollment = newEnrollment
     }
+    if (finalEnrollment) setEnrollment(finalEnrollment)
     setLoading(false)
+
+    // ── Mensagem diária personalizada ──────────────────────────────
+    const cacheKey = `vb_msg_${today}_${user.id}`
+    const cached   = typeof window !== 'undefined' ? localStorage.getItem(cacheKey) : null
+    if (cached) { setMensagem(cached); return }
+
+    setMensagemLoading(true)
+    try {
+      const completedDays = (progressData ?? []).filter((p: Progress) => p.completed).length
+      const startDate     = finalEnrollment?.start_date ?? today
+      const currentDay    = Math.min(Math.max(1, Math.floor((Date.now() - new Date(startDate).getTime()) / 86400000) + 1), 21)
+      const yesterdayHabits: HabitsYesterday = yesterdayHabitsData
+        ? { agua: yesterdayHabitsData.agua, proteina: yesterdayHabitsData.proteina, passos: yesterdayHabitsData.passos, treino: yesterdayHabitsData.treino }
+        : null
+
+      const res  = await fetch('/api/mensagem-diaria', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          nome:         profileData?.nome ?? null,
+          objetivo:     profileData?.objetivo ?? null,
+          streak:       profileData?.sequencia_atual ?? 0,
+          currentDay,
+          completedDays,
+          yesterdayHabits,
+        }),
+      })
+      const { message } = await res.json()
+      if (message) {
+        setMensagem(message)
+        localStorage.setItem(cacheKey, message)
+      }
+    } catch { /* silently ignore */ } finally {
+      setMensagemLoading(false)
+    }
   }, [])
 
   useEffect(() => { loadData() }, [loadData])
@@ -192,6 +236,41 @@ export default function ChallengeScreen() {
           )}
         </div>
       </div>
+
+      {/* ── MENSAGEM DIÁRIA ─────────────────────────────────────── */}
+      {(mensagem || mensagemLoading) && (
+        <div style={{ padding: '18px 20px 0' }}>
+          <div style={{
+            background: '#FAF7F2',
+            borderRadius: 18,
+            padding: '16px 18px',
+            boxShadow: '0 2px 12px rgba(47,74,59,0.07)',
+            borderLeft: '3px solid #C49A5A',
+            display: 'flex',
+            gap: 13,
+            alignItems: 'flex-start',
+          }}>
+            <div style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>🌿</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 9, color: '#C49A5A', letterSpacing: '0.12em', textTransform: 'uppercase', fontWeight: 700, marginBottom: 6 }}>
+                Mensagem do dia
+              </div>
+              {mensagemLoading && !mensagem ? (
+                <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: 'pulse 1.2s ease-in-out infinite' }} />
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: 'pulse 1.2s ease-in-out 0.2s infinite' }} />
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#C49A5A', opacity: 0.4, animation: 'pulse 1.2s ease-in-out 0.4s infinite' }} />
+                  <style>{`@keyframes pulse{0%,100%{opacity:0.2}50%{opacity:0.8}}`}</style>
+                </div>
+              ) : (
+                <div style={{ fontSize: 13, color: '#3D5240', lineHeight: 1.6, fontStyle: 'italic' }}>
+                  {mensagem}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── CTA DO DIA ──────────────────────────────────────────── */}
       <div style={{ padding: '18px 20px 0' }}>
