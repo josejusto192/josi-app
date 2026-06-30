@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Profile = { id: string; nome: string | null; is_admin: boolean }
@@ -480,7 +481,9 @@ function PostCard({ post, me, onLike, onCommentOpen, onDelete, onEdit }: {
 
       {/* Media */}
       {post.foto_url && (
-        <img src={post.foto_url} alt="" style={{ width:'100%', borderRadius:14, maxHeight:320, objectFit:'cover', marginBottom:10 }} />
+        <div style={{ position: 'relative', width: '100%', height: 320, borderRadius: 14, overflow: 'hidden', marginBottom: 10 }}>
+          <Image src={post.foto_url} alt="" fill sizes="100vw" style={{ objectFit: 'cover' }} />
+        </div>
       )}
       {post.video_url && (
         <video src={post.video_url} controls style={{ width:'100%', borderRadius:14, maxHeight:320, marginBottom:10 }} />
