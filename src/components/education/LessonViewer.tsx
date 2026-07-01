@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import Image from 'next/image'
 
 type LessonFull = {
   id: string; titulo: string; descricao: string | null; tipo: string
@@ -198,7 +199,9 @@ export default function LessonViewer({ lessonId, onBack, onComplete, isCompleted
 
         {/* IMAGEM */}
         {lesson.tipo === 'imagem' && lesson.imagem_url && (
-          <img src={lesson.imagem_url} alt={lesson.titulo} style={{ width:'100%', maxHeight:400, objectFit:'cover' }} />
+          <div style={{ position: 'relative', width: '100%', height: 400 }}>
+            <Image src={lesson.imagem_url} alt={lesson.titulo} fill sizes="100vw" style={{ objectFit: 'cover' }} />
+          </div>
         )}
 
         {/* Title + meta */}

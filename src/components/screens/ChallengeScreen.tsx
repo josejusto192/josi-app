@@ -52,6 +52,7 @@ export default function ChallengeScreen() {
   const [currentWeight, setCurrentWeight] = useState<number | null>(null)
   const [dayDetail, setDayDetail]         = useState<number | null>(null)
   const [savingHabit, setSavingHabit]     = useState<string | null>(null)
+  const [habitError, setHabitError]       = useState<string | null>(null)
   const [mensagem, setMensagem]           = useState<string | null>(null)
   const [mensagemLoading, setMensagemLoading] = useState(false)
   const [unlocking, setUnlocking]         = useState(false)
@@ -179,10 +180,16 @@ export default function ChallengeScreen() {
   const toggleHabit = async (key: keyof Habits) => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user || savingHabit) return
+    const previousHabits = habits
     const newHabits = { ...habits, [key]: !habits[key] }
     setHabits(newHabits)
     setSavingHabit(key)
-    await supabase.from('habits_log').upsert({ user_id: user.id, date: new Date().toISOString().split('T')[0], ...newHabits }, { onConflict: 'user_id,date' })
+    const { error } = await supabase.from('habits_log').upsert({ user_id: user.id, date: new Date().toISOString().split('T')[0], ...newHabits }, { onConflict: 'user_id,date' })
+    if (error) {
+      setHabits(previousHabits)
+      setHabitError('Não foi possível salvar. Verifique sua conexão.')
+      setTimeout(() => setHabitError(null), 3000)
+    }
     setSavingHabit(null)
   }
 
@@ -384,6 +391,11 @@ export default function ChallengeScreen() {
             {habitsDone === 4 ? '✓ Todos feitos!' : `${habitsDone} de 4`}
           </div>
         </div>
+        {habitError && (
+          <div role="alert" style={{ padding: '8px 18px', background: '#FBEAEA', color: '#A14A4A', fontSize: 12, fontWeight: 600 }}>
+            {habitError}
+          </div>
+        )}
         {HABITS_CONFIG.map((h, i) => {
           const done = habits[h.id]
           return (
